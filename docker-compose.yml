@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: ureca-mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: urecadb
+      MYSQL_ROOT_PASSWORD: ureca123
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+    restart: always
+
+  redis:
+    image: redis:alpine
+    container_name: chat-redis
+    ports:
+      - "6379:6379"
+    restart: always

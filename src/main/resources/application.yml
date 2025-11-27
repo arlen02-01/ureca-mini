@@ -1,0 +1,29 @@
+spring:
+  config:
+    import: optional:classpath:application-secret.yml
+
+  #데이터베이스 연결 설정
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3307/urecadb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
+
+  #JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+
+  #Redis 연결 설정
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# Swagger 커스텀 설정
+swagger:
+  title: "Ureca Project"
+  description: "Ureca 미니 프로젝트 API 명세서"
+  version: "v1.0"
