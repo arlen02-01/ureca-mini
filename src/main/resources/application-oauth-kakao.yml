@@ -1,0 +1,30 @@
+#Kakao OAuth Settings
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            client-id: 3646fe2b5fb64e721a8f08bba01b256f
+            client-secret: f4939mRX2l7daQceEeXpct2BqEnX042b
+            # 사용자가 카카오 로그인 후 돌아올 서버의 URL
+            redirect-uri: http://localhost:8080/login/oauth2/code/kakao
+            # 엑세스 토큰 요청 시, 유형을 지정하는 헤더 속성
+            authorization-grant-type: authorization_code
+            # 사용자 정보 요청 범위를 지정하는 속성
+            scope:
+              - profile_nickname
+            # 클라이언트를 구분하기 위한 이름
+            client-name: Kakao
+            # 인증 서버로 요청 시, 지정할 요청 메서드
+            client-authentication-method: client_secret_post
+        provider:
+          kakao:
+            # 사용자 인증을 위한 URL, 사용자가 카카오 로그인 페이지로 리다이렉트될 때 이 주소가 사용 (인증 서버)
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            # 엑세스 토큰을 받급받기 위한 URL, 인증 코드를 엑세스 토큰으로 교환할 때 이 주소로 요청을 보냄  (인증 서버)
+            token-uri: https://kauth.kakao.com/oauth/token
+            # 인증된 사용자의 정보를 가져오기 위한 URL, 발급받은 엑세스 토큰을 사용하여 이 주소로 사용자 정보를 요청 (리소스 서버)
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            # 사용자 정보 응답에서 사용자 식별자로 사용할 속성을 지정
+            user-name-attribute: id
