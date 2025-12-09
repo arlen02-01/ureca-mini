@@ -13,8 +13,6 @@ public interface FriendRepository extends JpaRepository<FriendShip, Long> {
     Optional<FriendShip> findByReceiverId(Long receiverId);
     Optional<FriendShip> findBySenderIdAndReceiverId(Long senderId, Long receiverId);
 
-    List<FriendShip> findAllByReceiverIdAndStatus(Long receiverId, FriendStatus status);
-
     // 친구 요청 조회용
     @Query("""
         SELECT f FROM friendship f
