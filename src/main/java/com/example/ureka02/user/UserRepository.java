@@ -1,4 +1,4 @@
-package com.example.ureka02.global.auth.user;
+package com.example.ureka02.user;
 
 import java.util.Optional;
 

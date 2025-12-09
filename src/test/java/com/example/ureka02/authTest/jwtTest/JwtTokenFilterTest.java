@@ -22,11 +22,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import com.example.ureka02.global.auth.jwt.JwtTokenFilter;
 import com.example.ureka02.global.auth.jwt.JwtTokenUtil;
-import com.example.ureka02.global.auth.user.customUserDetails.CustomUserDetailsService;
+import com.example.ureka02.user.customUserDetails.CustomUserDetailsService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

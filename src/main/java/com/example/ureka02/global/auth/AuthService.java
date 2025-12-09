@@ -10,7 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.example.ureka02.global.auth.jwt.JwtTokenUtil;
-import com.example.ureka02.global.auth.user.customUserDetails.CustomUserDetails;
+import com.example.ureka02.user.customUserDetails.CustomUserDetails;
 
 import lombok.RequiredArgsConstructor;
 

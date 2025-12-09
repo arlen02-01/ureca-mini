@@ -1,7 +1,7 @@
-package com.example.ureka02.global.auth.user;
+package com.example.ureka02.user;
 
-import com.example.ureka02.global.auth.user.enums.AuthProvider;
-import com.example.ureka02.global.auth.user.enums.Role;
+import com.example.ureka02.user.enums.AuthProvider;
+import com.example.ureka02.user.enums.Role;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
