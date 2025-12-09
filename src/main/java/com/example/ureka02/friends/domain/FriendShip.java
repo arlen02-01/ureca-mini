@@ -27,7 +27,7 @@ public class FriendShip {
     private User receiver;
 
     @Column(name="status", nullable = false)
-    private Status status;
+    private FriendStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -44,9 +44,5 @@ public class FriendShip {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
-    }
-
-    enum Status {
-        PENDING, ACCEPTED
     }
 }
