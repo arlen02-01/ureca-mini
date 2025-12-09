@@ -1,4 +1,4 @@
-package com.example.ureka02.global.auth.dto;
+package com.example.ureka02.user.dto;
 
 import lombok.Getter;
 import lombok.Setter;

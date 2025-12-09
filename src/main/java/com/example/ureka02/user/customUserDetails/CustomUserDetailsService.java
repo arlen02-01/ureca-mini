@@ -1,12 +1,12 @@
-package com.example.ureka02.global.auth.user.customUserDetails;
+package com.example.ureka02.user.customUserDetails;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.example.ureka02.global.auth.user.User;
-import com.example.ureka02.global.auth.user.UserRepository;
+import com.example.ureka02.user.User;
+import com.example.ureka02.user.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 

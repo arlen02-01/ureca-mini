@@ -12,11 +12,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.example.ureka02.global.auth.user.User;
-import com.example.ureka02.global.auth.user.UserRepository;
-import com.example.ureka02.global.auth.user.customUserDetails.CustomUserDetailsService;
-import com.example.ureka02.global.auth.user.enums.AuthProvider;
-import com.example.ureka02.global.auth.user.enums.Role;
+import com.example.ureka02.user.User;
+import com.example.ureka02.user.UserRepository;
+import com.example.ureka02.user.customUserDetails.CustomUserDetailsService;
+import com.example.ureka02.user.enums.AuthProvider;
+import com.example.ureka02.user.enums.Role;
 
 import jakarta.transaction.Transactional;
 

@@ -7,11 +7,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import com.example.ureka02.global.auth.user.User;
-import com.example.ureka02.global.auth.user.UserRepository;
-import com.example.ureka02.global.auth.user.UserService;
-import com.example.ureka02.global.auth.user.enums.AuthProvider;
-import com.example.ureka02.global.auth.user.enums.Role;
+import com.example.ureka02.user.User;
+import com.example.ureka02.user.UserRepository;
+import com.example.ureka02.user.UserService;
+import com.example.ureka02.user.enums.AuthProvider;
+import com.example.ureka02.user.enums.Role;
 
 import jakarta.transaction.Transactional;
 

@@ -1,4 +1,4 @@
-package com.example.ureka02.controller;
+package com.example.ureka02.global.controller;
 
 import com.example.ureka02.global.common.ResponseDto;
 import io.swagger.v3.oas.annotations.Operation;

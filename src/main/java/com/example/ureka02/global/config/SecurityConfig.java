@@ -1,7 +1,9 @@
-package com.example.ureka02.global.auth;
+package com.example.ureka02.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,7 +16,7 @@ import com.example.ureka02.global.auth.Oauth.CustomOAuth2UserService;
 import com.example.ureka02.global.auth.Oauth.OAuth2LoginSuccessHandler;
 import com.example.ureka02.global.auth.jwt.JwtTokenFilter;
 import com.example.ureka02.global.auth.jwt.JwtTokenUtil;
-import com.example.ureka02.global.auth.user.customUserDetails.CustomUserDetailsService;
+import com.example.ureka02.user.customUserDetails.CustomUserDetailsService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +29,12 @@ public class SecurityConfig {
     private final CustomUserDetailsService customUserDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

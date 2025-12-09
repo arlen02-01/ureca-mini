@@ -1,4 +1,4 @@
-package com.example.ureka02.global.auth.user.customUserDetails;
+package com.example.ureka02.user.customUserDetails;
 
 import java.util.Collection;
 import java.util.List;
@@ -7,7 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.example.ureka02.global.auth.user.User;
+import com.example.ureka02.user.User;
 
 public class CustomUserDetails implements UserDetails{
 	private final User user;

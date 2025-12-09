@@ -5,10 +5,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import com.example.ureka02.global.auth.user.User;
-import com.example.ureka02.global.auth.user.UserRepository;
-import com.example.ureka02.global.auth.user.enums.AuthProvider;
-import com.example.ureka02.global.auth.user.enums.Role;
+import com.example.ureka02.user.User;
+import com.example.ureka02.user.UserRepository;
+import com.example.ureka02.user.enums.AuthProvider;
+import com.example.ureka02.user.enums.Role;
 
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
