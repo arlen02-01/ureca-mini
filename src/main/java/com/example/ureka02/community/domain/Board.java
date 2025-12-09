@@ -57,6 +57,10 @@ public class Board {
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    @Column(name = "is_deleted", nullable = false)
+    @Builder.Default
+    private Boolean isDeleted = false;
+
     @PreUpdate
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
@@ -71,9 +75,17 @@ public class Board {
         this.viewCount++;
     }
 
-    public void updatePost(String title, String content) {
+    public Board updatePost(String title, String content) {
         this.title = title;
         this.content = content;
+        this.updatedAt = LocalDateTime.now();
+
+        return this;
+    }
+
+
+    public void delete() {
+        this.isDeleted = true;
         this.updatedAt = LocalDateTime.now();
     }
 }
