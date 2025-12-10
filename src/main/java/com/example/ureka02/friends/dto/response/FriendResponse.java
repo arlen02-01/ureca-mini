@@ -7,13 +7,13 @@ import java.time.LocalDateTime;
 
 @Getter
 public class FriendResponse {
-    public Long requestId;
+    public Long id;
     public Long senderId;
     public Long receiverId;
     public LocalDateTime createdAt;
 
     public FriendResponse(Friendship friendShip) {
-        requestId = friendShip.getId();
+        id = friendShip.getId();
         senderId = friendShip.getSender().getId();
         receiverId = friendShip.getReceiver().getId();
         createdAt = friendShip.getCreatedAt();

@@ -51,13 +51,20 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 // 🔑 URL별 권한 설정
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html")
+                        .permitAll()
+
                         // 토큰 없이 접근 허용할 URL들
                         .requestMatchers(
                                 "/auth/login",
                                 "/auth/signup",
                                 "/auth/kakao/**",
                                 "/oauth2/**",
-                                "/login/oauth2/**"
+                                "/login/oauth2/**",
+                                "/recruitments/**",
+                                "/api/friends**"
                         ).permitAll()
                         // 나머지는 인증 필요
                         .anyRequest().authenticated()
