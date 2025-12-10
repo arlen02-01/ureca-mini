@@ -12,6 +12,7 @@ import com.example.ureka02.user.dto.LoginForm;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequiredArgsConstructor
@@ -23,7 +24,7 @@ public class AuthController {
 	public String loginPage() {
 		return "auth/login";
 	}
-	
+
 	@PostMapping("/login/local")
 	public String localLogin(LoginForm form, HttpServletResponse res) {
 		ResponseCookie jwtCookie = authService.localLoginAndCreateCookie(form.getEmail(), form.getPassword());
