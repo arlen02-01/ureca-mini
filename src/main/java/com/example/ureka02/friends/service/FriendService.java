@@ -12,6 +12,7 @@ import com.example.ureka02.user.User;
 import com.example.ureka02.user.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +24,7 @@ import java.util.Optional;
 public class FriendService {
     private final FriendRepository friendRepository;
     private final UserRepository userRepository;
+    private final RedisTemplate<String, Long>  redisTemplate;
 
     // 1. 친구 요청 보내기
     public FriendResponse sendFriendRequest(Long senderId, Long receiverId) {
@@ -71,8 +73,9 @@ public class FriendService {
                 .toList();
     }
 
-    // 3. 친구 요청 수락
+    // 3. 친구 요청 수락 (레디스에 friend:{memberId} 저장)
     public boolean acceptFriendRequest(Long friendshipId, Long receiverId) {
+
         Friendship friendship = friendRepository.findById(friendshipId)
                 .orElseThrow(() -> new CommonException(ErrorCode.FRIEND_REQUEST_NOT_FOUND));
 
@@ -81,7 +84,18 @@ public class FriendService {
         }
 
         friendship.setStatus(FriendStatus.ACCEPTED);
+
+        Long userA = friendship.getSender().getId();
+        Long userB = receiverId;
+
+        redisTemplate.opsForSet().add(friendKey(userA), userB);
+        redisTemplate.opsForSet().add(friendKey(userB), userA);
+
         return true;
+    }
+
+    private String friendKey(Long memberId) {
+        return "friend:" + memberId;
     }
 
     // 4. 친구 요청 거절
