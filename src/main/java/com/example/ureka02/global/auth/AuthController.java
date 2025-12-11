@@ -23,7 +23,7 @@ public class AuthController {
 
 	@GetMapping("/success-login")
 	public String test() {
-		return "success";
+		return "redirect:/";
 	}
 
 	@GetMapping("/login")
