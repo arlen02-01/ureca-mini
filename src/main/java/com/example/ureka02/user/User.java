@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity 
-@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "username"))
+@Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
 @Getter
 @Setter
 @NoArgsConstructor

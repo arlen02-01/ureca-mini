@@ -128,8 +128,9 @@
             <div class="auth">
 			    <!-- 로그인 된 상태 -->
 			    <span sec:authorize="isAuthenticated()">
-			        <a href="/auth/logout" class="authBox">로그아웃</a>
-			    </span>
+				    <span sec:authentication="name"></span>님 환영합니다!
+				    <a href="/auth/logout" class="authBox">로그아웃</a>
+				</span>
 			
 			    <!-- 로그인 안 된 상태 -->
 			    <span sec:authorize="isAnonymous()">
@@ -139,6 +140,7 @@
 			</div>
 
         </nav>
+        <div>content</div>
 
     </div>
 
