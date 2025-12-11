@@ -1,28 +1,16 @@
 spring:
+  profiles:
+    active: local
   config:
     import:
       - optional:classpath:application-secret.yml
       - optional:classpath:application-oauth-kakao.yml
 
-  #데이터베이스 연결 설정
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3307/urecadb?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
-
-  #JPA 설정
+  # JPA 공통 설정
   jpa:
-    hibernate:
-      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
-        show_sql: true
-
-  #Redis 연결 설정
-  data:
-    redis:
-      host: localhost
-      port: 6379
 
 # Swagger 커스텀 설정
 swagger:
