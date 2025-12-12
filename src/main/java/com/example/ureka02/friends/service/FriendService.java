@@ -95,7 +95,7 @@ public class FriendService {
     }
 
     private String friendKey(Long memberId) {
-        return "friend:" + memberId;
+        return "friends:" + memberId;
     }
 
     // 4. 친구 요청 거절
