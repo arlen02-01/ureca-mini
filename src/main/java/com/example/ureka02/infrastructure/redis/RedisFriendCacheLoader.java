@@ -21,8 +21,8 @@ public class RedisFriendCacheLoader {
         List<Friendship> all = friendRepository.findAll();
 
         for (Friendship f : all) {
-            redisTemplate.opsForSet().add("friends:" + f.getReceiver().getId(), f.getSender().getId());
-            redisTemplate.opsForSet().add("friends:" + f.getSender().getId(), f.getReceiver().getId());
+            redisTemplate.opsForSet().add("friend:" + f.getReceiver().getId(), f.getSender().getId());
+            redisTemplate.opsForSet().add("friend:" + f.getSender().getId(), f.getReceiver().getId());
         }
     }
 }
