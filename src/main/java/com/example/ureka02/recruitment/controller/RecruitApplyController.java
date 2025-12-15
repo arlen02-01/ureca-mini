@@ -38,7 +38,7 @@ public class RecruitApplyController {
     @PostMapping("/{recruitmentId}")
     @Operation(summary = "선착순 모집글 신청", description = "사용자는 특정 모집글에 신청할 수 있습니다.")
     public ResponseEntity<ResponseDto<RecruitApplyResponse>> applyRecruitment(
-            @PathVariable Long recruitmentId,
+    		@PathVariable("recruitmentId") Long recruitmentId,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
         Long applierId = principal.getId();
@@ -53,8 +53,8 @@ public class RecruitApplyController {
     @Operation(summary = "내가 신청한 모집글 목록", description = "현재 로그인한 사용자가 신청한 모집글을 조회합니다. ")
     public ResponseEntity<ResponseDto<Page<MyAppliedRecruitResponse>>> getMyAplliedRecruits(
             @AuthenticationPrincipal CustomUserDetails principal,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "5") int size) {
 
         Long applierId = principal.getId();
 

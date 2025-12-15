@@ -3,6 +3,7 @@ package com.example.ureka02.friends.repository;
 import com.example.ureka02.friends.domain.Friendship;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public interface FriendRepository extends JpaRepository<Friendship, Long> {
         WHERE (f.sender.id = :userId OR f.receiver.id = :userId)
           AND f.status = com.example.ureka02.friends.domain.FriendStatus.PENDING
     """)
-    List<Friendship> findPendingFriendships(Long userId);
+    List<Friendship> findPendingFriendships(@Param("userId") Long userId);
 
 
     // 친구 목록 조회
@@ -29,6 +30,6 @@ public interface FriendRepository extends JpaRepository<Friendship, Long> {
         WHERE (f.sender.id = :userId OR f.receiver.id = :userId)
           AND f.status = com.example.ureka02.friends.domain.FriendStatus.ACCEPTED
     """)
-    List<Friendship> findAcceptedFriendships(Long userId);
+    List<Friendship> findAcceptedFriendships(@Param("userId") Long userId);
 }
 

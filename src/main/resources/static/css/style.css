@@ -1,0 +1,367 @@
+/* =========================
+   전체 레이아웃 공통
+   ========================= */
+
+a {
+    text-decoration: none;   /* 밑줄 제거 */
+    color: inherit;          /* 부모 색상 따라감 */
+}
+.bdy {
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+}
+
+/* 페이지 안쪽 컨테이너 */
+.content {
+	min-height:100vh;
+	height: auto;
+    max-width: 800px;
+    width: 80%;
+    border: 3px solid black;
+    box-sizing: border-box;
+}
+
+/* =========================
+   상단 네비게이션 공통
+   ========================= */
+
+.nav {
+    display: flex;
+    align-items: center;
+    height: 80px;
+    width: 100%;
+    border-bottom: 3px solid black;
+}
+
+/* 왼쪽: 로고 */
+.logo {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 25%;
+    font-size: 30px;
+    height: 90%;
+}
+
+/* 가운데: 페이지 타이틀 – 항상 가운데 정렬 */
+.title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50%;
+    font-size: 40px;
+    text-align: center;
+}
+
+/* 오른쪽: 로그인 / 마이페이지 영역 */
+.auth {
+    display: flex;
+    flex-direction: column;      /* 위: 환영글, 아래: 버튼들 */
+    justify-content: center;
+    align-items: flex-end;
+    width: 25%;
+    gap: 4px;
+}
+
+.welcome {
+    font-size: 14px;            /* 타이틀보다 작게 */
+    color: #333;
+}
+
+/* 로그인 / 마이페이지 / 로그아웃 버튼 묶음 */
+.auth-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+/* 로그인 / 회원가입 / 마이페이지 / 로그아웃 버튼 공통 스타일 */
+.authBox {
+    border: 1px solid black;
+    padding: 5px 10px;
+    border-radius: 10%;
+    background-color: rgb(150, 150, 150);
+    height: 20px;
+    line-height: 20px;
+    font-size: 13px;
+    text-decoration: none;
+    color: black;
+    box-sizing: border-box;
+}
+
+/* =========================
+   탭(홈: 팀/게시판, 마이페이지: 내가 쓴 글/친구)
+   ========================= */
+
+.contentsBar {
+    display: flex;
+    justify-content: center;
+}
+
+/* 탭 버튼 공통 – home & mypage 모두 이 클래스로 사용 */
+.tab-btn {
+    width: 50%;
+    height: 50px;
+    cursor: pointer;
+    padding: 10px 20px;
+    background: #8f8f8f;
+    color: black;
+    border-radius: 8px 8px 0 0;
+    display: inline-block;
+    text-align: center;
+    border: 1px solid #555;
+    border-bottom: none;   /* contentArea와 붙는 느낌 */
+    box-sizing: border-box;
+}
+
+/* 클릭 시 눌린 느낌 (선택 사항) */
+.tab-btn:active {
+    background: #555;
+}
+
+/* 현재 선택된 탭에 강조 – 마이페이지에서 사용, 원하면 홈에도 사용 가능 */
+.active-tab {
+    background: antiquewhite;
+    font-weight: bold;
+}
+
+/* =========================
+   내용 영역
+   ========================= */
+
+#contentArea {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    background-color: antiquewhite;
+    width: 100%;
+    height: auto;
+    box-sizing: border-box;
+    padding: 16px 16px 24px;
+}
+
+/* 리스트 상단 헤더 (타이틀 + 버튼) */
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+/* “모집하기” 버튼 */
+.recruit-btn {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #4caf50;
+    color: #fff;
+    cursor: pointer;
+}
+
+.recruit-btn:hover {
+    background: #3f8c42;
+}
+
+/* =========================
+   카드(모집글) 공통
+   ========================= */
+
+.card-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.card {
+    padding: 16px 24px;
+    border: 1px solid black;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    box-sizing: border-box;
+}
+
+.ctitle {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.authorSpotsTime {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 4px 16px;
+    width: 100%;
+}
+
+.meta {
+    flex: 1 1 150px;
+    word-break: break-word;
+}
+
+/* 모집 상태 색상 */
+.open {
+    background-color: rgb(139, 255, 110);
+}
+
+.closed {
+    background-color: rgb(255, 146, 146);
+}
+
+/* 카드 안의 액션 버튼 영역 (수정/삭제/마감 등) */
+.card-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.card-actions button {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    cursor: pointer;
+    font-size: 12px;
+    background: #f1f1f1;
+}
+
+/* =========================
+   모달(모집하기) 공통
+   ========================= */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-sizing: border-box;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+.form-row label {
+    margin-bottom: 4px;
+    font-size: 14px;
+}
+
+.form-row input {
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.form-actions button {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #555;
+    cursor: pointer;
+}
+/* =========================
+   Pagination
+   ========================= */
+
+.pagination {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.page-btn {
+    border: 1px solid #555;
+    background: #f1f1f1;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.page-info {
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    color: #333;
+    padding: 0 4px;
+}
+
+.detail-modal {
+  max-width: 520px;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.x-btn {
+  border: 1px solid #999;
+  background: #eee;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.detail-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-apply{
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #2e7d32;
+  cursor: pointer;
+  font-size: 12px;
+  background: #a5d6a7;
+}
+.btn-apply:hover{
+  background: #81c784;
+}
+.btn-apply:disabled{
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.card-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

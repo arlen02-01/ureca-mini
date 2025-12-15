@@ -33,7 +33,7 @@ public class AuthController {
 
 	@GetMapping("/signup")
 	public String signupPage() {
-		return "/auth/signup";
+		return "auth/signup";
 	}
 	
     @GetMapping("/logout")
