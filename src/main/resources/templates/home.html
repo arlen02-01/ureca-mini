@@ -11,6 +11,18 @@
     
     <title>Document</title>
 
+	<script>
+	  var CURRENT_USER_ID = null;
+	  var CURRENT_USER_NAME = null;   // ✅ 추가
+	</script>
+	
+	<script th:inline="javascript" sec:authorize="isAuthenticated()">
+	/*<![CDATA[*/
+	  CURRENT_USER_ID = /*[[${#authentication.principal.id}]]*/ null;
+	  CURRENT_USER_NAME = /*[[${#authentication.name}]]*/ null;
+	/*]]>*/
+	</script>
+
     <!-- CSS -->
 	<link rel="stylesheet" th:href="@{/css/style.css}">
 

@@ -557,31 +557,26 @@ document.addEventListener("DOMContentLoaded", () => {
   // Render Recruit Cards (공통)
   // -------------------------
   function renderRecruitCards(list, opts = { mode: "HOME" }) {
-    const mode = opts.mode;
+    const mode = opts.mode ?? "HOME";
 
     list.sort((a, b) => Number(b.id) - Number(a.id));
 
     return list.map((item) => {
       const isClosed = item.status === "CLOSED" || item.status === "COMPLETED";
-
       const isOwner =
-        typeof CURRENT_USER_ID !== "undefined" &&
-        CURRENT_USER_ID !== null &&
-        Number(CURRENT_USER_ID) === Number(item.creatorId);
+        CURRENT_USER_ID != null &&
+        item.creatorId != null &&
+        Number(item.creatorId) === Number(CURRENT_USER_ID);
 
       let ownerBtns = "";
-      if (mode === "MYPAGE_MYPOSTS") {
-        // ✅ 내가 쓴 글 화면: 마감 버튼(마감된 글이면 숨김)
-        ownerBtns = (!isClosed)
-          ? `<div class="card-actions">
-               <button class="btn-complete" data-id="${item.id}">마감</button>
-             </div>`
-          : "";
-      }
 
-      // ✅ 신청한 글 화면: 버튼 없음
-      if (mode === "MYPAGE_APPLIED") {
-        ownerBtns = "";
+      // ✅ HOME에서도 작성자면 마감 버튼 노출
+      if ((mode === "HOME" || mode === "MYPAGE_MYPOSTS") && isOwner && !isClosed) {
+        ownerBtns = `
+          <div class="card-actions">
+            <button class="btn-complete" data-id="${item.id}">마감</button>
+          </div>
+        `;
       }
 
       const onOff = isClosed ? "closed" : "open";
@@ -602,6 +597,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     }).join("");
   }
+
 
 
 
@@ -713,12 +709,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // DETAIL MODAL (전체)
   // -------------------------
   async function openDetailModal(recruitId) {
+
     const idNum = Number(recruitId);
     if (!Number.isFinite(idNum)) return;
 
     // 1) 상세 조회
     const body = await fetchJson(`/recruitments/${idNum}`);
     const d = body?.data ?? body;
+	console.log("detail creatorId =", d.creatorId, "detail =", d);
 
     if (!d) throw new Error("No detail data");
 
@@ -727,10 +725,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 3) 공통 상태 계산
     const isClosed = d.status === "CLOSED" || d.status === "COMPLETED";
-    const isOwner =
-      (CURRENT_USER_ID != null) &&
-      (d.creatorId != null) &&
-      (Number(d.creatorId) === Number(CURRENT_USER_ID));
+	const isOwner =
+	  CURRENT_USER_NAME != null &&
+	  d.creatorName != null &&
+	  String(d.creatorName) === String(CURRENT_USER_NAME);
+
 
     const isFull =
       Number(d.currentSpots ?? 0) >= Number(d.totalSpots ?? 0);
@@ -1256,6 +1255,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("마감 처리 중 오류가 발생했습니다.");
     }
   });
+  console.log("CURRENT_USER_ID =", CURRENT_USER_ID);
 
   // -------------------------
   // Init by page
