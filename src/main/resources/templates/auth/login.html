@@ -9,6 +9,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Document</title>
+    
+    <!-- CSS -->
+	<link rel="stylesheet" th:href="@{/css/style.css}">
+
+    
+    <!-- 1) 기본값: 비로그인 시 null -->
+    <script>
+        var CURRENT_USER_ID = null;
+    </script>
+
+    <!-- 2) 로그인 된 경우에만 덮어쓰기 -->
+    <script th:inline="javascript" sec:authorize="isAuthenticated()">
+    /*<![CDATA[*/
+        CURRENT_USER_ID = /*[[${#authentication.principal.id}]]*/ null;
+    /*]]>*/
+    </script>
+
+    <!-- JS -->
+    <script th:src="@{/js/script.js}"></script>
 
     <style>
         a{
@@ -116,6 +135,35 @@
 <body class="bdy">
 
     <div class="content">
+        <nav class="nav">
+
+            <div class="logo">logo</div>
+			
+			<a class="title" href="/">또간집</a>
+
+
+			<div class="auth">
+			    <!-- 로그인 된 상태 -->
+			    <span sec:authorize="isAuthenticated()">
+			        <div class="welcome">
+			            <span sec:authentication="name"></span>님 환영합니다!
+			        </div>
+			        <div class="auth-buttons">
+			            <a href="/mypage" class="authBox">마이페이지</a>
+			            <a href="/auth/logout" class="authBox">로그아웃</a>
+			        </div>
+			    </span>
+			
+			    <!-- 로그인 안 된 상태 -->
+			    <span sec:authorize="isAnonymous()">
+			        <div class="auth-buttons">
+			            <a href="/auth/login" class="authBox">로그인</a>
+			            <a href="/auth/signup" class="authBox">회원가입</a>
+			        </div>
+			    </span>
+			</div>
+
+        </nav>
 
         <div>로그인</div>
 
