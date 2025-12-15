@@ -60,6 +60,7 @@ public class SecurityConfig {
                                                 // 토큰 없이 접근 허용할 URL들
                                                 .requestMatchers(
                                                 				"/home", "/",
+                                                				"/css/**", "/js/**",
                                                                 "/auth/login",
                                                                 "/auth/login/local",
                                                                 "/auth/signup",

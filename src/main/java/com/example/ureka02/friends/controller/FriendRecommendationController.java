@@ -23,7 +23,7 @@ public class FriendRecommendationController {
 
     @Operation(summary = "친구 추천", description = "친구 추천 기능입니다.")
     @GetMapping
-    public ResponseDto<List<FriendRecommendDto>> recommend(@RequestParam(defaultValue = "10") int limit,
+    public ResponseDto<List<FriendRecommendDto>> recommend(@RequestParam(name="limit", defaultValue = "10") int limit,
                                                            @AuthenticationPrincipal CustomUserDetails user) {
         return ResponseDto.ok(
                 friendRecommendationService.recommendFriends(user.getId(), limit)
