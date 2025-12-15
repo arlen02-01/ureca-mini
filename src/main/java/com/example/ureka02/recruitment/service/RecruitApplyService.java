@@ -7,10 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.example.ureka02.global.config.RedissionConfig;
 import com.example.ureka02.global.error.CommonException;
 import com.example.ureka02.global.error.ErrorCode;
 import com.example.ureka02.recruitment.Enum.RecruitApplyStatus;
@@ -36,8 +35,8 @@ public class RecruitApplyService {
     private final RecruitRepository recruitRepository;
     private final RecruitApplyRepository recruitApplyRepository;
     private final UserRepository userRepository;
-    private final RedisTemplate<String, String> redisTemplate;
-
+    // private final RedisTemplate<String, String> redisTemplate;
+    private final StringRedisTemplate redisTemplate;
     private static final String RECRUIT_COUNT_KEY_PREFIX = "recruit:count:";
 
     @Transactional

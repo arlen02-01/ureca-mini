@@ -1,6 +1,8 @@
 package com.example.ureka02.friends.service;
 
 import com.example.ureka02.friends.dto.FriendRecommendDto;
+import com.example.ureka02.user.UserRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,6 +20,7 @@ class FriendRecommendServiceTest {
     private RedisTemplate<String, Long> redisTemplate;
     private SetOperations<String, Long> setOps;
     private FriendRecommendationService recommendService;
+    private UserRepository userRepository;
 
     @BeforeEach
     void setUp() {
@@ -26,7 +29,7 @@ class FriendRecommendServiceTest {
 
         when(redisTemplate.opsForSet()).thenReturn(setOps);
 
-        recommendService = new FriendRecommendationService(redisTemplate);
+        recommendService = new FriendRecommendationService(redisTemplate, userRepository);
     }
 
     @Test
@@ -45,7 +48,7 @@ class FriendRecommendServiceTest {
         // 공통 친구 계산:
         // intersect(friends:1, friends:candidate)
         when(setOps.intersect("friends:1", "friends:4")).thenReturn(Set.of(2L, 3L)); // commonCount=2
-        when(setOps.intersect("friends:1", "friends:5")).thenReturn(Set.of(3L));     // commonCount=1
+        when(setOps.intersect("friends:1", "friends:5")).thenReturn(Set.of(3L)); // commonCount=1
 
         List<FriendRecommendDto> result = recommendService.recommendFriends(userId, 10);
 
