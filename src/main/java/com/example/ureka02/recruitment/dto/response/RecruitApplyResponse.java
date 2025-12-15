@@ -9,7 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-// 모집 신청 응답  - 성공처리 외에는 db 에 저장할 필요 x
+// 모집 신청/취소 응답  - 성공처리 외에는 db 에 저장할 필요 x
 @Getter
 @AllArgsConstructor
 @Builder

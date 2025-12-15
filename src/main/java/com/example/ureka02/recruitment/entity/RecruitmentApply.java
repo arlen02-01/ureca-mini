@@ -53,7 +53,6 @@ public class RecruitmentApply {
         }
     }
 
-    // 중복 신청 방지 - 엔티티 메소드에서 할지 서비스에서 할지? -> 서비스에서 작성함.
     @Builder
     public RecruitmentApply(Recruitment recruitment, User applier) {
         this.recruitment = recruitment;

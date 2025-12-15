@@ -7,12 +7,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+// 모집 완료된 전체 결과
 @Getter
 @Builder
 @AllArgsConstructor
-
 public class RecruitCompletedResponse {
-
     private Long recruitId;
     private String status;
     private List<RecruitMemberResponse> members;

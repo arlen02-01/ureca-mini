@@ -50,16 +50,16 @@ public class Recruitment {
         return LocalDateTime.now().isAfter(this.endTime);
     }
 
-    /*
-     * TODO 신청 인원 증가 -> 동시성 제어는 service에서 Redisson + MySQL 트랜잭션으로 처리할건데..엔티티 쪽에서 순수
-     * 행위만 처리? 해야하는지? -> 우선 작성함 increaseCurrentSpot
-     */
-    //
-
-    public void increaseCurrentSpots() {
+    public void increaseCurrentSpots() { // 신청
         this.currentSpots++;
         if (this.currentSpots >= this.totalSpots) {
             close();
+        }
+    }
+
+    public void decrementCurrentSpots() { // 취소
+        if (this.currentSpots > 0) {
+            this.currentSpots -= 1;
         }
     }
 
@@ -74,10 +74,6 @@ public class Recruitment {
     public void complete() {
         this.status = RecruitStatus.COMPLETED;
     }
-
-    /*
-     * TODO 미리 친구 추가가 된 인원을 모임에 추가? 까지 가져갈 것인지 - 이건 추후 협의 후 작성
-     */
 
     @Builder
     public Recruitment(String title, String description, int totalSpots, LocalDateTime endTime, User creator) {

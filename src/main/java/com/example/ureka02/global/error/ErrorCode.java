@@ -49,7 +49,13 @@ public enum ErrorCode {
     // recruitment
     RECRUITMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "R404001", "모집글이 존재하지 않습니다."),
     RECRUITMENT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "R403001", "모집글 수정 권한이 없습니다."),
-    RECRUITMENT_EXPIRED(HttpStatus.BAD_REQUEST, "R400001", "이미 마감된 모집글입니다.");
+    RECRUITMENT_EXPIRED(HttpStatus.BAD_REQUEST, "R400001", "이미 마감된 모집글입니다."),
+
+    ALREADY_APPLIED(HttpStatus.BAD_REQUEST, "A400001", "이미 신청하셨습니다."),
+    RECRUITMENT_FULL(HttpStatus.BAD_REQUEST, "A400002", "모집 정원이 마감되었습니다."),
+
+    APPLY_NOT_FOUND(HttpStatus.NOT_FOUND, "A404001", "신청 내역을 찾을 수 없습니다."),
+    INVALID_APPLY_STATUS(HttpStatus.BAD_REQUEST, "A400003", "유효하지 않은 신청 상태입니다. (취소 불가)");
 
     private final HttpStatus httpStatus;
     private final String code;
