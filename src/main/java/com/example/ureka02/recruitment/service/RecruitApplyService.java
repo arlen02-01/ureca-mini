@@ -6,6 +6,7 @@ import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -96,7 +97,7 @@ public class RecruitApplyService {
 
     // 내가 신청한 모집리스트 조회
     public Page<MyAppliedRecruitResponse> getMyAppliedRecruits(Long applierId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("appliedAt").descending());
         Page<RecruitmentApply> applyPage = recruitApplyRepository.findByApplierId(applierId, pageable);
 
         // DTO 변환 및 반환

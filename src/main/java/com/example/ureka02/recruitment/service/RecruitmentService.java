@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -73,7 +74,7 @@ public class RecruitmentService {
     // 모집글 목록 조회
     public Page<RecruitListItemResponse> getListRecruitments(int page, int size) {
         // List<Recruitment> recruitments = recruitmentRepository.findAll();
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Recruitment> result = recruitmentRepository.findAll(pageable);
 
         // Entity 객체를 dto 로 변환하기 위해 Page 의 map 사용
@@ -83,7 +84,7 @@ public class RecruitmentService {
 
     // 내가 작성한 모집글 목록 조회
     public Page<RecruitListItemResponse> getMyListItemRecruits(Long createdId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Recruitment> result = recruitmentRepository.findByCreatorId(createdId, pageable);
         return result.map(this::toListItemResponse);
     }
@@ -98,6 +99,7 @@ public class RecruitmentService {
                 .creatorName(recruitment.getCreator().getName())
                 .description(recruitment.getDescription())
                 .totalSpots(recruitment.getTotalSpots())
+                .createdAt(recruitment.getCreatedAt())
                 .endTime(recruitment.getEndTime())
                 .currentSpots(recruitment.getCurrentSpots())
                 .status(recruitment.getStatus())
@@ -134,6 +136,7 @@ public class RecruitmentService {
                 .currentSpots(recruitment.getCurrentSpots())
                 .endTime(recruitment.getEndTime())
                 .status(recruitment.getStatus())
+                .createdAt(recruitment.getCreatedAt())
                 .build();
     }
 

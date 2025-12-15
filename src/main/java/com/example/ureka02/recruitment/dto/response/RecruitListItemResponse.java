@@ -23,4 +23,6 @@ public class RecruitListItemResponse {
     private int currentSpots;
     private LocalDateTime endTime;
     private RecruitStatus status;
+
+    private LocalDateTime createdAt;
 }

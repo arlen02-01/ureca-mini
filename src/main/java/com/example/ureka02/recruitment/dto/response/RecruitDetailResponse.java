@@ -27,6 +27,8 @@ public class RecruitDetailResponse {
     private LocalDateTime endTime;
     private RecruitStatus status;
 
+    private LocalDateTime createdAt;
+
     // 현재 모집 중인 신청자 목록
     private List<RecruitApplicationsResponse> apllications;
 }

@@ -37,13 +37,13 @@ public class Recruitment {
     private String description; // 내용 작성
 
     private int totalSpots; // 최대 인원
-
     private int currentSpots; // 현재 신청한 인원
-
     private LocalDateTime endTime; // 마감 시간 설정
 
     @Enumerated(EnumType.STRING)
     private RecruitStatus status; // 모집 상태
+
+    private LocalDateTime createdAt;
 
     // 모집 마감일 설정
     public boolean isExpired() {
@@ -83,7 +83,8 @@ public class Recruitment {
         this.endTime = endTime;
         this.creator = creator;
 
-        this.currentSpots = 0; // 친구 추가 여부에 따라 빌더로 받을지 결정
+        this.currentSpots = 1; // 생성 시 신청 인원은 항상 1-> 작성자 본인 포함
+        this.createdAt = LocalDateTime.now();
         this.status = RecruitStatus.OPEN;
     }
 }
