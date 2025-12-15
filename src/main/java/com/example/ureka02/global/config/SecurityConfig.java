@@ -65,6 +65,7 @@ public class SecurityConfig {
                                                                 "/auth/login",
                                                                 "/auth/login/local",
                                                                 "/auth/signup",
+                                                                "/auth/signup/**",
                                                                 "/auth/kakao/**",
                                                                 "/oauth2/**",
                                                                 "/login/oauth2/**",
