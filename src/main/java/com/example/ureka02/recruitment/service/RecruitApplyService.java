@@ -1,6 +1,9 @@
 package com.example.ureka02.recruitment.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
@@ -36,9 +39,21 @@ public class RecruitApplyService {
     private final RecruitRepository recruitRepository;
     private final RecruitApplyRepository recruitApplyRepository;
     private final UserRepository userRepository;
-    // private final RedisTemplate<String, String> redisTemplate;
     private final StringRedisTemplate redisTemplate;
     private static final String RECRUIT_COUNT_KEY_PREFIX = "recruit:count:";
+
+    // 미리 신청한 친구들의 신청 기록을 생성하고 저장
+    @Transactional
+    public List<RecruitmentApply> createPreApplies(Recruitment recruitment, List<User> preAppliers) {
+        if (preAppliers == null || preAppliers.isEmpty()) {
+            return List.of();
+        }
+
+        List<RecruitmentApply> preList = preAppliers.stream().map(applier -> RecruitmentApply.builder()
+                .recruitment(recruitment).applier(applier).build()).collect(Collectors.toList());
+
+        return recruitApplyRepository.saveAll(preList);
+    }
 
     @Transactional
     public RecruitApplyResponse applyRecruitment(Long recruitmentId, Long userId) {
@@ -83,6 +98,7 @@ public class RecruitApplyService {
                     .recruitment(recruitment)
                     .applier(applier)
                     .build();
+
             RecruitmentApply savedApply = recruitApplyRepository.save(recruitmentApply);
 
             return toApplyResponse(savedApply);
@@ -120,6 +136,7 @@ public class RecruitApplyService {
                 .applyId(application.getId())
                 .recruitId(application.getRecruitment().getId())
                 .title(application.getRecruitment().getTitle())
+                .endTime(application.getRecruitment().getEndTime())
                 .recruitStatus(application.getRecruitment().getStatus())
                 .totalSpots(application.getRecruitment().getTotalSpots())
                 .currentSpots(application.getRecruitment().getCurrentSpots())

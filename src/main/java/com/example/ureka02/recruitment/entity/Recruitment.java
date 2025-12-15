@@ -45,9 +45,20 @@ public class Recruitment {
 
     private LocalDateTime createdAt;
 
-    // 모집 마감일 설정
-    public boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.endTime);
+    /*
+     * // 모집 마감일 설정 - 시간 지나서 자동 마감까지느 배치/스케줄러 추후 구현.
+     * public boolean isExpired() {
+     * return LocalDateTime.now().isAfter(this.endTime);
+     * }
+     */
+
+    public void initializeSpots(int preApplierCount) {
+        this.currentSpots = preApplierCount + 1; // 작성자 포함.
+
+        // 인원 충족 시 close() 도메인 메서드 호출
+        if (this.currentSpots >= this.totalSpots) {
+            close();
+        }
     }
 
     public void increaseCurrentSpots() { // 신청
@@ -80,11 +91,13 @@ public class Recruitment {
         this.title = title;
         this.description = description;
         this.totalSpots = totalSpots;
+
         this.endTime = endTime;
         this.creator = creator;
 
-        this.currentSpots = 1; // 생성 시 신청 인원은 항상 1-> 작성자 본인 포함
+        this.currentSpots = 0;
         this.createdAt = LocalDateTime.now();
         this.status = RecruitStatus.OPEN;
     }
+
 }

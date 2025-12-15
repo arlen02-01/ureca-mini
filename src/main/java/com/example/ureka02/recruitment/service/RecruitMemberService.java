@@ -91,7 +91,7 @@ public class RecruitMemberService {
 
                 return RecruitCompletedResponse.builder()
                                 .recruitId(recruitment.getId())
-                                .status(recruitment.getStatus().name()) // "COMPLETED"
+                                .status(recruitment.getStatus()) // "COMPLETED"
                                 .members(memberResponses)
                                 .build();
 

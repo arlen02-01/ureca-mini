@@ -8,6 +8,7 @@ import com.example.ureka02.recruitment.dto.request.RecruitCreateRequest;
 import com.example.ureka02.recruitment.dto.response.MyAppliedRecruitResponse;
 import com.example.ureka02.recruitment.dto.response.RecruitApplyResponse;
 import com.example.ureka02.recruitment.dto.response.RecruitDetailResponse;
+import com.example.ureka02.recruitment.entity.RecruitmentApply;
 import com.example.ureka02.recruitment.service.RecruitApplyService;
 import com.example.ureka02.user.customUserDetails.CustomUserDetails;
 
@@ -42,7 +43,6 @@ public class RecruitApplyController {
             @AuthenticationPrincipal CustomUserDetails principal) {
 
         Long applierId = principal.getId();
-
         RecruitApplyResponse response = recruitApplyService.applyRecruitment(recruitmentId, applierId);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(ResponseDto.ok(response));
