@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 처리 중...</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        }
+        .container {
+            text-align: center;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3182f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        p {
+            color: #666;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="spinner"></div>
+    <p>결제를 처리하고 있습니다...</p>
+</div>
+
+<script>
+    async function handlePaymentRedirect() {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentKey = urlParams.get('paymentKey');
+            const orderId = urlParams.get('orderId');
+            const amount = urlParams.get('amount');
+
+            if (!paymentKey || !orderId || !amount) {
+                throw new Error('결제 정보가 없습니다.');
+            }
+
+            // 결제 승인 API 호출
+            const response = await fetch('/payment/api/payments/confirm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    paymentKey: paymentKey,
+                    orderId: orderId,
+                    amount: parseInt(amount)
+                })
+            });
+
+            if (!response.ok) throw new Error('결제 승인 실패');
+
+            const payment = await response.json();
+            const settlementId = payment.settlement.id;
+
+            // 정산 목록으로 이동
+            window.location.href = `/settlement-list?settlementId=${settlementId}`;
+
+        } catch (error) {
+            console.error('에러:', error);
+            alert('결제 처리 중 오류가 발생했습니다.');
+            window.location.href = '/settlement-list';
+        }
+    }
+
+    window.addEventListener('load', handlePaymentRedirect);
+</script>
+</body>
+</html>
