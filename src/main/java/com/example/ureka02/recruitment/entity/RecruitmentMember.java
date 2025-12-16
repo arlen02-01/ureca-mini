@@ -30,11 +30,9 @@ public class RecruitmentMember {
     @JoinColumn(name = "recruitment_id")
     private Recruitment recruitment;
 
-    // private Long memberId;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
-    private User member; // 지금은 단순 pk 만 필요하지만 추후 pay 와 합칠때 및 유지보수를 생각해 User 로 매핑
+    private User member;
 
     @Enumerated(EnumType.STRING)
     private RecruitMemberRole role;

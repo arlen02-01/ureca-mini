@@ -6,9 +6,10 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 import com.example.ureka02.global.error.CommonException;
 import com.example.ureka02.global.error.ErrorCode;
 import com.example.ureka02.recruitment.Enum.RecruitApplyStatus;
@@ -22,7 +23,6 @@ import com.example.ureka02.recruitment.repository.RecruitApplyRepository;
 import com.example.ureka02.recruitment.repository.RecruitRepository;
 import com.example.ureka02.user.User;
 import com.example.ureka02.user.UserRepository;
-
 import lombok.RequiredArgsConstructor;
 
 // 모집글 생성/조회/관리
@@ -38,11 +38,31 @@ public class RecruitmentService {
     private final RecruitRepository recruitmentRepository;
     private final UserRepository userRepository;
     private final RecruitApplyRepository recruitApplyRepository;
+    private final RecruitApplyService recruitApplyService;
+
+    private final StringRedisTemplate redisTemplate; // Redis 사용
+    private static final String RECRUIT_COUNT_KEY_PREFIX = "recruit:count:";
 
     // 모집글 생성
+    @Transactional
     public RecruitDetailResponse createRecruitment(RecruitCreateRequest request, Long userId) {
+        // 작성자 조회
         User creator = userRepository.findById(userId)
                 .orElseThrow(() -> new CommonException(ErrorCode.USER_NOT_FOUND));
+
+        // 미리 신청할 친구들(preAppliers) 조회 및 검증
+        List<Long> preApplierIds = request.getPreApplierid();
+        List<User> preAppliers = List.of();
+
+        if (preApplierIds != null) {
+            preAppliers = userRepository.findAllById(preApplierIds);
+
+            if (preAppliers.size() != preApplierIds.size()) {
+                throw new CommonException(ErrorCode.USER_NOT_FOUND);
+            }
+        }
+
+        int preApplierCnt = preAppliers.size();
 
         Recruitment recruitment = Recruitment.builder()
                 .title(request.getTitle())
@@ -54,7 +74,21 @@ public class RecruitmentService {
 
         Recruitment savedRecruitment = recruitmentRepository.save(recruitment);
 
-        return toDetailResponse(savedRecruitment, List.of());
+        // 신청 로직을 RecruitApplyService로 위임
+        List<RecruitmentApply> savedPreApplierApplies = recruitApplyService.createPreApplies(
+                savedRecruitment, preAppliers);
+
+        // 인원수와 상태 최종 업데이트
+        savedRecruitment.initializeSpots(preApplierCnt);
+
+        // Redis 카운트 초기화
+        String countKey = RECRUIT_COUNT_KEY_PREFIX + savedRecruitment.getId();
+
+        // 상세 조회와 동일하게 미리 신청된 친구들 리스트만 모아서 응답
+        List<RecruitApplicationsResponse> applicantResponses = toApplicantResponses(savedPreApplierApplies);
+        redisTemplate.opsForValue().set(countKey, String.valueOf(savedRecruitment.getCurrentSpots()));
+
+        return toDetailResponse(savedRecruitment, applicantResponses);
     }
 
     // 모집글 상세 조회
@@ -103,7 +137,7 @@ public class RecruitmentService {
                 .endTime(recruitment.getEndTime())
                 .currentSpots(recruitment.getCurrentSpots())
                 .status(recruitment.getStatus())
-                .apllications(applications)
+                .applications(applications)
                 .build();
     }
 
