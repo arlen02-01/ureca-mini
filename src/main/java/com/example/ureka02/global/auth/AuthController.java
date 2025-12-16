@@ -21,11 +21,6 @@ public class AuthController {
 	private final AuthService authService;
 	private final UserService userService;
 
-	@GetMapping("/success-login")
-	public String test() {
-		return "redirect:/";
-	}
-
 	@GetMapping("/login")
 	public String loginPage() {
 		return "auth/login";
@@ -33,7 +28,7 @@ public class AuthController {
 
 	@GetMapping("/signup")
 	public String signupPage() {
-		return "/auth/signup";
+		return "auth/signup";
 	}
 	
     @GetMapping("/logout")

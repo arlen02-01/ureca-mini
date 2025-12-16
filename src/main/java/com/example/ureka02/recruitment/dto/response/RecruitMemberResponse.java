@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-// 모집완료시 확정 멤버
+// 모집완료시 확정 멤버(개별 정보)
 @Getter
 @Builder
 @AllArgsConstructor

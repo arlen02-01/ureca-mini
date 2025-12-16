@@ -8,6 +8,7 @@ import com.example.ureka02.recruitment.dto.request.RecruitCreateRequest;
 import com.example.ureka02.recruitment.dto.response.MyAppliedRecruitResponse;
 import com.example.ureka02.recruitment.dto.response.RecruitApplyResponse;
 import com.example.ureka02.recruitment.dto.response.RecruitDetailResponse;
+import com.example.ureka02.recruitment.entity.RecruitmentApply;
 import com.example.ureka02.recruitment.service.RecruitApplyService;
 import com.example.ureka02.user.customUserDetails.CustomUserDetails;
 
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -32,48 +34,33 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class RecruitApplyController {
 
     private final RecruitApplyService recruitApplyService;
-    /*
-     * // 모집 신청
-     * 
-     * @PostMapping("/{recruitmentId}")
-     * 
-     * @Operation(summary = "선착순 모집글 신청", description = "사용자는 특정 모집글에 신청할 수 있습니다.")
-     * public ResponseEntity<ResponseDto<RecruitApplyResponse>> applyRecruitment(
-     * 
-     * @PathVariable Long recruitmentId,
-     * 
-     * @AuthenticationPrincipal CustomUserDetails principal) {
-     * 
-     * Long applierId = principal.getId();
-     * 
-     * RecruitApplyResponse response =
-     * recruitApplyService.applyRecruitment(recruitmentId, applierId);
-     * 
-     * return
-     * ResponseEntity.status(HttpStatus.CREATED).body(ResponseDto.ok(response));
-     * }
-     * 
-     * // 내가 신청한 모집글 목록
-     * 
-     * @GetMapping("/my/ApplyList")
-     * 
-     * @Operation(summary = "내가 신청한 모집글 목록", description =
-     * "현재 로그인한 사용자가 신청한 모집글을 조회합니다. ")
-     * public ResponseEntity<ResponseDto<MyAppliedRecruitResponse>>
-     * getMyAplliedRecruits(
-     * 
-     * @AuthenticationPrincipal CustomUserDetails principal,
-     * 
-     * @RequestParam(defaultValue = "0") int page,
-     * 
-     * @RequestParam(defaultValue = "5") int size) {
-     * 
-     * Long applierId = principal.getId();
-     * 
-     * MyAppliedRecruitResponse response =
-     * recruitApplyService.getMyAplliedRecruits();
-     * 
-     * return ResponseEntity.ok(ResponseDto.ok(response));
-     * }
-     */
+
+    // 모집 신청
+    @PostMapping("/{recruitmentId}")
+    @Operation(summary = "선착순 모집글 신청", description = "사용자는 특정 모집글에 신청할 수 있습니다.")
+    public ResponseEntity<ResponseDto<RecruitApplyResponse>> applyRecruitment(
+    		@PathVariable("recruitmentId") Long recruitmentId,
+            @AuthenticationPrincipal CustomUserDetails principal) {
+
+        Long applierId = principal.getId();
+        RecruitApplyResponse response = recruitApplyService.applyRecruitment(recruitmentId, applierId);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ResponseDto.ok(response));
+    }
+
+    // 내가 신청한 모집글 목록
+    @GetMapping("/my/ApplyList")
+    @Operation(summary = "내가 신청한 모집글 목록", description = "현재 로그인한 사용자가 신청한 모집글을 조회합니다. ")
+    public ResponseEntity<ResponseDto<Page<MyAppliedRecruitResponse>>> getMyAplliedRecruits(
+            @AuthenticationPrincipal CustomUserDetails principal,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "5") int size) {
+
+        Long applierId = principal.getId();
+
+        Page<MyAppliedRecruitResponse> response = recruitApplyService.getMyAppliedRecruits(applierId, page, size);
+
+        return ResponseEntity.ok(ResponseDto.ok(response));
+    }
+
 }

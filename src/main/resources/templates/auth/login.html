@@ -1,170 +1,86 @@
 <!DOCTYPE html>
-
-<html lang="kor">
-
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로그인</title>
 
-    <meta charset="UTF-8">
+  <link rel="stylesheet" th:href="@{/css/style.css}" />
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Document</title>
-
-    <style>
-        a{
-            text-decoration: none;
-            color: black;
-        }
-
-        .content{
-            height: 100%;
-            max-width: 800px;
-            width: 80%;
-
-            border: 3px solid black;
-
-        }
-
-        .bdy{
-
-            display: flex;
-
-            justify-content: center;
-
-            height: 100vh;
-
-            width: 100%;
-
-        }
-
-        .localLogin{
-
-            display: flex;
-
-            justify-content: center;
-
-        }
-
-        .loginSummit{
-
-            display: flex;
-
-            flex-direction: column;
-
-        }
-
-        .input-group{
-
-            display: flex;
-
-            justify-content: space-between;
-
-            align-items: center;
-
-        }
-
-        .k{
-
-            display: flex;
-
-            justify-content: center;
-
-            align-items: center;
-
-            width: 30px;
-
-            height: 30px;
-
-            border: 1px solid black;
-
-            border-radius: 50%;
-
-            background-color: yellow;
-
-        }
-
-        .login-box{
-
-            display: flex;
-
-            flex-direction: column;
-
-            justify-content: center;
-
-            align-items: center;
-
-            gap: 10px;
-
-        }
-
-        .btn1{
-
-            padding: 5px;
-
-            border: 1px solid black;
-
-            border-radius: 10%;
-
-            background-color: rgb(221, 221, 221);
-
-        }
-
-    </style>
-
+  <script>
+    var CURRENT_USER_ID = null;
+    var CURRENT_USER_NAME = null;
+  </script>
+  <script th:inline="javascript" sec:authorize="isAuthenticated()">
+  /*<![CDATA[*/
+    CURRENT_USER_ID = /*[[${#authentication.principal.id}]]*/ null;
+    CURRENT_USER_NAME = /*[[${#authentication.name}]]*/ null;
+  /*]]>*/
+  </script>
 </head>
 
 <body class="bdy">
+<div class="content">
 
-    <div class="content">
-
-        <div>로그인</div>
-
-            <form action="/auth/login/local" method="POST" class="login-box">
-
-                <div class="localLogin">
-
-                    <div class="loginSummit">
-
-                        <div class="input-group">
-
-                            <label for="id">아이디</label>
-
-                            <input type="text" id="email" name="email" required>
-
-                        </div>
-
-                        <div class="input-group">
-
-                            <label for="pw">비밀번호</label>
-
-                            <input type="password" id="password" name="password" required>
-
-                        </div>
-
-                    </div>
+	<nav class="nav">
+	  <div class="logo">ㄸ</div>
+	
+	  <a class="title" href="/">또간집</a>
+	
+	  <div class="auth">
+	    <span sec:authorize="isAuthenticated()">
+	      <div class="welcome">
+	        <span sec:authentication="name"></span>님 환영합니다!
+	      </div>
+	      <div class="auth-buttons">
+	        <a href="/mypage" class="authBox">마이페이지</a>
+	        <a href="/auth/logout" class="authBox">로그아웃</a>
+	      </div>
+	    </span>
+	
+	    <span sec:authorize="isAnonymous()">
+	      <div class="auth-buttons">
+	        <a href="/auth/login" class="authBox">로그인</a>
+	        <a href="/auth/signup" class="authBox">회원가입</a>
+	      </div>
+	    </span>
+	  </div>
+	</nav>
 
 
-
-                    <button type="submit" class="login-btn">로그인</button>                    
-
-                </div>
-
-
-
-                <a href="http://localhost:8080/oauth2/authorization/kakao" class="k">
-
-                    K
-
-                </a>
-
-
-
-                <a href="/auth/signup" class="btn1">회원가입</a>
-
-            </form><form action="post" >
-
+  <div id="contentArea">
+    <div class="list-header">
+      <h2>로그인</h2>
     </div>
 
-</body>
+    <div class="card open" style="cursor:default;">
+      <form action="/auth/login/local" method="POST">
+        <div class="form-row">
+          <label for="email">아이디(email)</label>
+          <input type="text" id="email" name="email" autocomplete="username" required />
+        </div>
 
+        <div class="form-row">
+          <label for="password">비밀번호</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required />
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="page-btn">로그인</button>
+          <a href="/auth/signup" class="authBox">회원가입</a>
+        </div>
+
+        <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+          <a href="/oauth2/authorization/kakao" class="page-btn" style="border-color: rgba(255,204,102,0.45);">
+            카카오로 로그인
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+</body>
 </html>

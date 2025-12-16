@@ -3,6 +3,7 @@ package com.example.ureka02.community;
 import com.example.ureka02.community.domain.Board;
 import com.example.ureka02.community.dto.BoardRequest;
 import com.example.ureka02.community.dto.BoardResponse;
+import com.example.ureka02.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,10 +14,10 @@ public class BoardService {
     private final BoardRepository boardRepository;
 
     @Transactional
-    public BoardResponse createBoard(Long userId, BoardRequest request) {
+    public BoardResponse createBoard(Long userId,String username, BoardRequest request) {
         Board board = Board.builder()
-            .userId(1L)
-            .username("temp")
+            .userId(userId)
+            .username(username)
             .title(request.getTitle())
             .content(request.getContent())
             .build();

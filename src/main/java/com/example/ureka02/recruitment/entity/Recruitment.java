@@ -32,29 +32,40 @@ public class Recruitment {
     private String description; // 내용 작성
 
     private int totalSpots; // 최대 인원
-
     private int currentSpots; // 현재 신청한 인원
-
     private LocalDateTime endTime; // 마감 시간 설정
 
     @Enumerated(EnumType.STRING)
     private RecruitStatus status; // 모집 상태
 
-    // 모집 마감일 설정
-    public boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.endTime);
-    }
+    private LocalDateTime createdAt;
 
     /*
-     * TODO 신청 인원 증가 -> 동시성 제어는 service에서 Redisson + MySQL 트랜잭션으로 처리할건데..엔티티 쪽에서 순수
-     * 행위만 처리? 해야하는지? -> 우선 작성함 increaseCurrentSpot
+     * // 모집 마감일 설정 - 시간 지나서 자동 마감까지느 배치/스케줄러 추후 구현.
+     * public boolean isExpired() {
+     * return LocalDateTime.now().isAfter(this.endTime);
+     * }
      */
-    //
 
-    public void increaseCurrentSpots() {
+    public void initializeSpots(int preApplierCount) {
+        this.currentSpots = preApplierCount + 1; // 작성자 포함.
+
+        // 인원 충족 시 close() 도메인 메서드 호출
+        if (this.currentSpots >= this.totalSpots) {
+            close();
+        }
+    }
+
+    public void increaseCurrentSpots() { // 신청
         this.currentSpots++;
         if (this.currentSpots >= this.totalSpots) {
             close();
+        }
+    }
+
+    public void decrementCurrentSpots() { // 취소
+        if (this.currentSpots > 0) {
+            this.currentSpots -= 1;
         }
     }
 
@@ -70,29 +81,18 @@ public class Recruitment {
         this.status = RecruitStatus.COMPLETED;
     }
 
-    /*
-     * TODO 미리 친구 추가가 된 인원을 모임에 추가? 까지 가져갈 것인지 - 이건 추후 협의 후 작성
-     */
-
     @Builder
     public Recruitment(String title, String description, int totalSpots, LocalDateTime endTime, User creator) {
         this.title = title;
         this.description = description;
         this.totalSpots = totalSpots;
+
         this.endTime = endTime;
         this.creator = creator;
 
-        this.currentSpots = 0; // 친구 추가 여부에 따라 빌더로 받을지 결정
+        this.currentSpots = 0;
+        this.createdAt = LocalDateTime.now();
         this.status = RecruitStatus.OPEN;
     }
 
-
-
-    // Recruitment 엔티티의 complete() 메서드 호출 전에
-    @Transactional
-    public void completeRecruitment(int totalAmount) {
-        this.status = RecruitStatus.COMPLETED;
-        // 정산 자동 생성 (서비스 호출)
-        // settlementService.createSettlementAuto(this, totalAmount);
-    }
 }

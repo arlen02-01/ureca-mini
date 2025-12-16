@@ -53,7 +53,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 	    		
 	
 
-        String targetURL = "/auth/success-login";
+        String targetURL = "/";
 
         response.sendRedirect(targetURL);
     }

@@ -25,4 +25,6 @@ public interface RecruitApplyRepository extends JpaRepository<RecruitmentApply, 
             Long recruitmentId,
             RecruitApplyStatus status);
 
+    // 신청 취소 로직
+
 }
