@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-// 멤버별 결제 상태
 @Getter
 @Builder
 @NoArgsConstructor
@@ -24,11 +23,11 @@ public class MemberPaymentStatus {
     public static MemberPaymentStatus from(Payment payment) {
         return MemberPaymentStatus.builder()
                 .memberId(payment.getMember().getId())
-                .memberName(payment.getMember().getUser().getName())
+                .memberName(payment.getMember().getMember().getName())
                 .orderId(payment.getOrderId())
                 .amount(payment.getAmount())
                 .status(payment.getStatus().name())
-                .paidAt(payment.getApprovedAt())
+                .paidAt(payment.getPaidAt())
                 .build();
     }
 }

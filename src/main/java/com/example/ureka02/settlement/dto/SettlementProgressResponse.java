@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-// 정산 진행 현황 응답
 @Getter
 @Builder
 @NoArgsConstructor

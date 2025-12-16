@@ -2,19 +2,14 @@ package com.example.ureka02.recruitment.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.example.ureka02.recruitment.Enum.RecruitStatus;
 import com.example.ureka02.user.User;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -89,5 +84,15 @@ public class Recruitment {
 
         this.currentSpots = 0; // 친구 추가 여부에 따라 빌더로 받을지 결정
         this.status = RecruitStatus.OPEN;
+    }
+
+
+
+    // Recruitment 엔티티의 complete() 메서드 호출 전에
+    @Transactional
+    public void completeRecruitment(int totalAmount) {
+        this.status = RecruitStatus.COMPLETED;
+        // 정산 자동 생성 (서비스 호출)
+        // settlementService.createSettlementAuto(this, totalAmount);
     }
 }

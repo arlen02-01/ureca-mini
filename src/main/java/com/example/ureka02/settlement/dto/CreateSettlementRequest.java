@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-// 정산 생성 요청
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor

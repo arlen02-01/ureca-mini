@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-// 정산 상세 상태 응답
 @Getter
 @Builder
 @NoArgsConstructor

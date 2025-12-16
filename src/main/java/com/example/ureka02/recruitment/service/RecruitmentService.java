@@ -3,6 +3,9 @@ package com.example.ureka02.recruitment.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.example.ureka02.settlement.service.SettlementService;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
@@ -37,6 +40,7 @@ public class RecruitmentService {
     private final RecruitRepository recruitmentRepository;
     private final UserRepository userRepository;
     private final RecruitApplyRepository recruitApplyRepository;
+    private final SettlementService settlementService;
 
     // 모집글 생성
     public RecruitDetailResponse createRecruitment(RecruitCreateRequest request, Long userId) {
@@ -135,6 +139,17 @@ public class RecruitmentService {
                 .endTime(recruitment.getEndTime())
                 .status(recruitment.getStatus())
                 .build();
+    }
+
+
+    @Transactional
+    public void completeRecruitment(Long recruitmentId, Integer totalAmount) {
+        Recruitment recruitment = recruitmentRepository.findById(recruitmentId).orElseThrow();
+        recruitment.complete();
+        recruitmentRepository.save(recruitment);
+
+        // 정산 자동 생성
+        settlementService.createSettlementAuto(recruitment, totalAmount);
     }
 
 }

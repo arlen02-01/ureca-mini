@@ -7,9 +7,11 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "payment")
+@Setter
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -21,12 +23,13 @@ public class Payment {
     @Column(name = "payment_id")
     private Long id;
 
-    // Toss 결제 관련
-    @Column(name = "order_id", unique = true, nullable = false)
-    private String orderId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "settlement_id", nullable = false)
+    private Settlement settlement;
 
-    @Column(name = "payment_key")
-    private String paymentKey;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private RecruitmentMember member;
 
     @Column(nullable = false)
     private Integer amount;
@@ -35,64 +38,44 @@ public class Payment {
     @Column(nullable = false)
     private PaymentStatus status;
 
-    // 정산 연동
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "settlement_id")
-    private Settlement settlement;
+    @Column(name = "order_id", unique = true)
+    private String orderId;
 
-    // 결제자 (멤버)
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
-    private RecruitmentMember member;
+    @Column(name = "payment_key")
+    private String paymentKey;
 
-    // 결제 타입 및 메타데이터
-    @Column(name = "payment_method")
-    private String method;
+    @Column(name = "customer_key")
+    private String customerKey;
 
-    // 시간 정보
-    @Column(name = "requested_at")
-    private LocalDateTime requestedAt;
-
-    @Column(name = "approved_at")
-    private LocalDateTime approvedAt;
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        if (requestedAt == null) {
-            requestedAt = LocalDateTime.now();
+        if (status == null) {
+            status = PaymentStatus.PENDING;
+        }
+        if (orderId == null) {
+            orderId = "ORD-" + UUID.randomUUID().toString().substring(0, 8);
+        }
+        if (customerKey == null) {
+            customerKey = "user_" + member.getMember().getId();
         }
     }
 
-    // 비즈니스 로직
-    public void approve(String paymentKey, String method) {
+    public void complete(String paymentKey) {
         this.paymentKey = paymentKey;
-        this.method = method;
         this.status = PaymentStatus.COMPLETED;
-        this.approvedAt = LocalDateTime.now();
-    }
-
-    public void cancel() {
-        this.status = PaymentStatus.CANCELED;
-    }
-
-    public void fail() {
-        this.status = PaymentStatus.FAILED;
+        this.paidAt = LocalDateTime.now();
     }
 
     public boolean isCompleted() {
         return this.status == PaymentStatus.COMPLETED;
-    }
-
-    // Setter (양방향 관계 설정용)
-    public void setMember(RecruitmentMember member) {
-        this.member = member;
-    }
-
-    public void setSettlement(Settlement settlement) {
-        this.settlement = settlement;
     }
 }

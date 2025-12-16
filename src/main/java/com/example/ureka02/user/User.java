@@ -18,15 +18,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity 
+@Entity
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "name"))
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor 
+@AllArgsConstructor
 @Builder
 public class User{
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;                     // 내부 PK
 
@@ -53,7 +53,7 @@ public class User{
     // ===== 카카오 OAuth용 =====
     @Column(unique = true)
     private String socialId;					// 카카오에서 내려주는 id(정수형)
-    
+
     public User update(String nickname, String email) {
         this.name = nickname;
         if (email != null && !email.isEmpty()) {

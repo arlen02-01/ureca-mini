@@ -13,6 +13,7 @@ import java.util.List;
 @Entity
 @Table(name = "settlement")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -24,7 +25,7 @@ public class Settlement {
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recruitment_id", unique = true)
+    @JoinColumn(name = "recruitment_id", nullable = false, unique = true)
     private Recruitment recruitment;
 
     @Column(name = "total_amount", nullable = false)
@@ -37,7 +38,6 @@ public class Settlement {
     @Column(nullable = false)
     private SettlementStatus status;
 
-    // 결제 목록
     @OneToMany(mappedBy = "settlement", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Payment> payments = new ArrayList<>();
@@ -53,16 +53,13 @@ public class Settlement {
         createdAt = LocalDateTime.now();
     }
 
-    // 비즈니스 로직
     public void addPayment(Payment payment) {
         this.payments.add(payment);
         payment.setSettlement(this);
     }
 
     public int getCompletedPaymentCount() {
-        return (int) payments.stream()
-                .filter(Payment::isCompleted)
-                .count();
+        return (int) payments.stream().filter(Payment::isCompleted).count();
     }
 
     public int getTotalPaymentCount() {
@@ -70,8 +67,7 @@ public class Settlement {
     }
 
     public boolean isAllPaid() {
-        return !payments.isEmpty() &&
-                payments.stream().allMatch(Payment::isCompleted);
+        return !payments.isEmpty() && payments.stream().allMatch(Payment::isCompleted);
     }
 
     public void checkAndComplete() {
@@ -83,9 +79,5 @@ public class Settlement {
 
     public void start() {
         this.status = SettlementStatus.IN_PROGRESS;
-    }
-
-    public void cancel() {
-        this.status = SettlementStatus.CANCELED;
     }
 }

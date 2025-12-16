@@ -67,7 +67,10 @@ public class SecurityConfig {
                                                                 "/oauth2/**",
                                                                 "/login/oauth2/**",
                                                                 "/recruitments/**",
-                                                                 "/friends/**"
+                                                                 "/friends/**",
+                                                                "/payment/**",
+                                                                "/api/payment/**",
+                                                                "/settlement/**"
                                                 )
                                                 .permitAll()
                                                 // 나머지는 인증 필요

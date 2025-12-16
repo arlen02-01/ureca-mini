@@ -1,5 +1,8 @@
 package com.example.ureka02.recruitment.controller;
 
+import com.example.ureka02.recruitment.repository.RecruitRepository;
+import com.example.ureka02.settlement.entity.Settlement;
+import com.example.ureka02.settlement.repository.SettlementRepository;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -102,6 +105,23 @@ public class RecruitController {
         Page<RecruitListItemResponse> response = recruitmentService.getMyListItemRecruits(userId, page, size);
 
         return ResponseEntity.ok(ResponseDto.ok(response));
+    }
+
+
+    // 경윤 추가
+    private final RecruitRepository recruitRepository;
+    private final SettlementRepository settlementRepository;
+
+    /**
+     * 모집글의 정산 정보 조회
+     * GET /api/recruitment/{recruitmentId}/settlement
+     */
+    @GetMapping("/{recruitmentId}/settlement")
+    public ResponseEntity<Settlement> getSettlement(@PathVariable Long recruitmentId) {
+        return recruitRepository.findById(recruitmentId)
+                .flatMap(recruitment -> settlementRepository.findByRecruitment(recruitment))
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
 }
