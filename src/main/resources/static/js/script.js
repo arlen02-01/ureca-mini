@@ -721,7 +721,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!d) throw new Error("No detail data");
 
     // 2) 신청자 목록 (DTO 오타 그대로)
-    const applications = Array.isArray(d.apllications) ? d.apllications : [];
+	const applications = Array.isArray(d.apllications) ? d.apllications : [];
 
     // 3) 공통 상태 계산
     const isClosed = d.status === "CLOSED" || d.status === "COMPLETED";
@@ -940,8 +940,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function showHomeBoard() {
     state.view = "homeTeam"; // 게시판은 아직 별도 페이지 상태가 없으니 homeTeam 유지
     contentArea.innerHTML = `
-      <h2>게시판</h2>
-      <p>여기에 게시판 내용을 추가할 예정입니다.</p>
+      <h2>info</h2>
+      <p>누구랑 밥먹을지 고민중인 당신!</p>
+	  <p>빠르게 밥메이트를 찾아봅시다!</p>
     `;
   }
 
