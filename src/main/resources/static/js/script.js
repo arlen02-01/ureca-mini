@@ -55,21 +55,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalContent = modalEl.querySelector(".modal-content");
     if (!modalContent) return;
 
-    // 화면 기준 fixed + 가운데
     modalEl.style.position = "fixed";
     modalEl.style.inset = "0";
     modalEl.style.display = "flex";
     modalEl.style.alignItems = "center";
     modalEl.style.justifyContent = "center";
 
-    // 스크롤해도 현재 viewport 가운데 유지
     modalContent.style.maxHeight = "80vh";
     modalContent.style.overflow = "auto";
   }
 
-  // 모달 열릴 때마다 적용
   if (recruitModal) centerModalAtViewport(recruitModal);
   if (detailModal) centerModalAtViewport(detailModal);
+
+  function openCenteredModal(modalEl) {
+    if (!modalEl) return;
+    const modalContent = modalEl.querySelector(".modal-content");
+    if (!modalContent) return;
+
+    modalEl.classList.remove("hidden");
+
+    // scroll 기준 중앙(absolute)로 열고 싶다면 유지
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+    const viewportHeight = window.innerHeight;
+
+    modalContent.style.position = "absolute";
+    modalContent.style.top = `${scrollY + viewportHeight / 2}px`;
+    modalContent.style.transform = "translateY(-50%)";
+  }
 
   // -------------------------
   // CSRF Helpers
@@ -200,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const now = new Date();
 
       elements.forEach((el) => {
-        const card = el.closest(".card") || el.closest(".modal-content");
+		const card = el.closest(".recruit-card") || el.closest(".modal-content");
         const status = card?.getAttribute("data-status");
 
         if (status === "CLOSED" || status === "COMPLETED") {
@@ -260,7 +273,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return applications.some((app) => Number(app.userId) === Number(CURRENT_USER_ID));
   }
 
-  // 로그인 유저 이름
   function currentUserNameSafe() {
     if (typeof CURRENT_USER_NAME === "undefined") return null;
     return CURRENT_USER_NAME == null ? null : String(CURRENT_USER_NAME);
@@ -344,7 +356,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
               const disabled = state.selectedFriendIds.has(Number(friendUserId));
               return `
-                <div class="card open" style="cursor:default;">
+                <div class="card friend-card" style="cursor:default;">
                   <div class="ctitle">${name}</div>
                   <div class="card-actions">
                     <button class="btn-pick-friend"
@@ -442,7 +454,6 @@ document.addEventListener("DOMContentLoaded", () => {
       <div id="recommendList"><p>불러오는 중...</p></div>
     `;
 
-    // ✅ 전송(친구 요청) - 자기 자신에게 요청 막기
     $("#sendFriendReqBtn")?.addEventListener("click", async () => {
       const name = $("#friendNameInput")?.value?.trim();
       if (!name) return alert("이름을 입력해주세요.");
@@ -465,7 +476,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // 추천 리스트
     try {
       const res = await fetchJson(`/friends/recommend?limit=10`);
       const list = res?.data ?? [];
@@ -485,7 +495,7 @@ document.addEventListener("DOMContentLoaded", () => {
               const nm = r.userName;
               const common = r.commonCount;
               return `
-                <div class="card open" style="cursor:default;">
+                <div class="card friend-card" style="cursor:default;">
                   <div class="ctitle">${escapeHtml(nm)}</div>
                   <div class="meta">공통 친구 ${common}명</div>
                   <div class="card-actions">
@@ -564,7 +574,7 @@ document.addEventListener("DOMContentLoaded", () => {
               const friendshipId = f.id;
               const sender = f.senderName;
               return `
-                <div class="card open" style="cursor:default;">
+                <div class="card friend-card" style="cursor:default;">
                   <div class="ctitle">${escapeHtml(sender)}</div>
                   <div class="card-actions">
                     <button class="btn-accept" data-id="${friendshipId}">수락</button>
@@ -645,7 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   : escapeHtml(f.senderName);
 
               return `
-                <div class="card open" style="cursor:default;">
+                <div class="card friend-card" style="cursor:default;">
                   <div class="ctitle">${name}</div>
                   <div class="card-actions">
                     <button class="btn-delete-friend" data-id="${friendshipId}">삭제</button>
@@ -682,7 +692,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------
-  // Render Recruit Cards
+  // Render Recruit Cards (✅ recruit-card로 스코프 분리)
   // -------------------------
   function renderRecruitCards(list, opts = { mode: "HOME" }) {
     const mode = opts.mode ?? "HOME";
@@ -692,15 +702,15 @@ document.addEventListener("DOMContentLoaded", () => {
       .map((item) => {
         const isClosed = item.status === "CLOSED" || item.status === "COMPLETED";
 
-        // 백에서 list API에 creatorId가 없을 수도 있음 => creatorName 비교도 fallback
         const meName = currentUserNameSafe();
         const isOwner =
-          (CURRENT_USER_ID != null && item.creatorId != null && Number(item.creatorId) === Number(CURRENT_USER_ID)) ||
+          (CURRENT_USER_ID != null &&
+            item.creatorId != null &&
+            Number(item.creatorId) === Number(CURRENT_USER_ID)) ||
           (meName && item.creatorName && String(item.creatorName) === meName);
 
         let ownerBtns = "";
 
-        // ✅ HOME에서도 작성자면 마감 버튼
         if ((mode === "HOME" || mode === "MYPAGE_MYPOSTS") && isOwner && !isClosed) {
           ownerBtns = `
             <div class="card-actions">
@@ -712,7 +722,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const onOff = isClosed ? "closed" : "open";
 
         return `
-          <div class="card ${onOff}" data-status="${item.status}" data-id="${item.id}">
+          <div class="card recruit-card ${onOff}" data-status="${item.status}" data-id="${item.id}">
             <div class="ctitle">${escapeHtml(item.title ?? "")}</div>
             <div class="authorSpotsTime">
               <div class="meta">작성자: ${escapeHtml(item.creatorName ?? "")}</div>
@@ -740,30 +750,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const d = body?.data ?? body;
     if (!d) throw new Error("No detail data");
 
-    // 신청자/팀원 목록 (DTO 오타 그대로)
     let applications = Array.isArray(d.apllications) ? d.apllications : [];
 
-    // ✅ 백에서 "작성자는 무조건 포함"이라 했으니:
-    // 혹시 프론트에서 안 내려오는 케이스 대비해서, 비어있으면 작성자 1명이라도 표시
     if (applications.length === 0 && d.creatorName) {
       applications = [{ name: d.creatorName, userId: d.creatorId ?? null, order: 1 }];
     }
 
     const isClosed = d.status === "CLOSED" || d.status === "COMPLETED";
     const meName = currentUserNameSafe();
-
-    // ✅ owner 판단은 이름 비교(creatorId가 undefined라서)
     const isOwner = meName && d.creatorName && String(d.creatorName) === meName;
 
     const isFull = Number(d.currentSpots ?? 0) >= Number(d.totalSpots ?? 0);
 
-    // ✅ 내가 이미 팀원(=applications 안에 name으로 존재)이라면 신청버튼 숨김
     const isMemberByName =
       !!meName && applications.some((a) => String(a?.name ?? "").trim() === meName.trim());
 
     const applied = hasApplied(applications);
 
-    // 모달 내용 채우기
     if (detailTitle) detailTitle.textContent = d.title ?? "-";
     if (detailCreator) detailCreator.textContent = d.creatorName ?? "-";
     if (detailSpots) detailSpots.textContent = `${d.currentSpots ?? 0} / ${d.totalSpots ?? 0}`;
@@ -773,7 +776,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (detailCountdown) detailCountdown.setAttribute("data-end-time", d.endTime ?? "");
     if (detailModal) detailModal.setAttribute("data-status", d.status ?? "");
 
-    // 팀원 목록 렌더링
     const appsWrap = $("#detailApps");
     if (appsWrap) {
       appsWrap.innerHTML = applications.length
@@ -789,7 +791,6 @@ document.addEventListener("DOMContentLoaded", () => {
         : `<p class="muted">팀원이 없습니다.</p>`;
     }
 
-    // 버튼 초기화
     if (detailApplyBtn) {
       detailApplyBtn.style.display = "none";
       detailApplyBtn.disabled = false;
@@ -802,18 +803,14 @@ document.addEventListener("DOMContentLoaded", () => {
       detailCompleteBtn.dataset.id = String(d.id ?? idNum);
     }
 
-    // 화면별 정책
     if (state.view === "myPosts") {
-      // 내가 쓴 글: 마감만
       if (detailCompleteBtn) detailCompleteBtn.style.display = !isClosed ? "inline-block" : "none";
     } else if (state.view === "myApplied") {
-      // 내가 신청한 글: 버튼 없음
+      // no buttons
     } else {
-      // HOME
       if (isOwner) {
         if (detailCompleteBtn) detailCompleteBtn.style.display = !isClosed ? "inline-block" : "none";
       } else {
-        // ✅ 내가 팀원(초대 포함)이면 신청 버튼 숨김
         if (detailApplyBtn) {
           if (isClosed || isMemberByName) {
             detailApplyBtn.style.display = "none";
@@ -832,9 +829,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-	// 오픈 (상세도 현재 화면 기준 중앙)
-	openCenteredModal(detailModal);
-	startCountdown();
+    openCenteredModal(detailModal);
+    startCountdown();
   }
 
   function closeDetailModal() {
@@ -843,13 +839,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (detailCompleteBtn) detailCompleteBtn.dataset.id = "";
   }
 
-  // 상세 모달 닫기
   detailCloseBtn?.addEventListener("click", closeDetailModal);
   detailModal?.addEventListener("click", (e) => {
     if (e.target === detailModal) closeDetailModal();
   });
 
-  // 상세 모달 신청
   detailApplyBtn?.addEventListener("click", async () => {
     if (detailApplyBtn.disabled) return;
     const id = detailApplyBtn.dataset.id;
@@ -869,7 +863,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 상세 모달 마감
   detailCompleteBtn?.addEventListener("click", async () => {
     const id = detailCompleteBtn.dataset.id;
     if (!id) return;
@@ -901,65 +894,45 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       state.home.page = body.data.number ?? page;
-
       const list = body.data.content;
 
-	  contentArea.innerHTML = `
-	    <div class="list-header">
-	      <h2>밥친구 모집글</h2>
-	      <button id="openRecruitFormBtn" class="recruit-btn">모집하기</button>
-	    </div>
+      contentArea.innerHTML = `
+        <div class="list-header">
+          <h2>밥친구 모집글</h2>
+          <button id="openRecruitFormBtn" class="recruit-btn">모집하기</button>
+        </div>
 
-	    ${
-	      list.length === 0
-	        ? `<p class="muted" style="margin-top:12px;">현재 모집 중인 글이 없습니다.</p>`
-	        : `
-	          <div class="card-container">
-	            ${renderRecruitCards(list, { mode: "HOME" })}
-	          </div>
-	          ${renderPagination(body.data)}
-	        `
-	    }
-	  `;
-	  // ✅ 모집하기 버튼 이벤트는 항상 연결
-	  $("#openRecruitFormBtn")?.addEventListener("click", () => {
-	    openCenteredModal(recruitModal);
-	    resetFriendSelectionUI();
-	  });
+        ${
+          list.length === 0
+            ? `<p class="muted" style="margin-top:12px;">현재 모집 중인 글이 없습니다.</p>`
+            : `
+              <div class="card-container">
+                ${renderRecruitCards(list, { mode: "HOME" })}
+              </div>
+              ${renderPagination(body.data)}
+            `
+        }
+      `;
 
-	  // pagination은 있을 때만
-	  if (list.length !== 0) {
-	    $("#prevPageBtn")?.addEventListener("click", () => {
-	      if (!body.data.first) loadHomeTeam(state.home.page - 1);
-	    });
-	    $("#nextPageBtn")?.addEventListener("click", () => {
-	      if (!body.data.last) loadHomeTeam(state.home.page + 1);
-	    });
+      $("#openRecruitFormBtn")?.addEventListener("click", () => {
+        openCenteredModal(recruitModal);
+        resetFriendSelectionUI();
+      });
 
-	    startCountdown();
-	  }
+      if (list.length !== 0) {
+        $("#prevPageBtn")?.addEventListener("click", () => {
+          if (!body.data.first) loadHomeTeam(state.home.page - 1);
+        });
+        $("#nextPageBtn")?.addEventListener("click", () => {
+          if (!body.data.last) loadHomeTeam(state.home.page + 1);
+        });
+      }
 
       startCountdown();
     } catch (e) {
       console.error(e);
       setError();
     }
-  }
-  function openCenteredModal(modalEl) {
-    if (!modalEl) return;
-
-    const modalContent = modalEl.querySelector(".modal-content");
-    if (!modalContent) return;
-
-    modalEl.classList.remove("hidden");
-
-    // 현재 스크롤 기준 중앙 계산
-    const scrollY = window.scrollY || document.documentElement.scrollTop;
-    const viewportHeight = window.innerHeight;
-
-    modalContent.style.position = "absolute";
-    modalContent.style.top = `${scrollY + viewportHeight / 2}px`;
-    modalContent.style.transform = "translateY(-50%)";
   }
 
   function showHomeBoard() {
@@ -988,7 +961,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setActiveTab(homeTabs.team, homeTabs.board, homeTabs.team);
     loadHomeTeam(0);
 
-    // 모집 모달 닫기
     closeRecruitBtn?.addEventListener("click", () => {
       recruitModal?.classList.add("hidden");
       recruitForm?.reset();
@@ -1003,7 +975,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // 모집하기 submit
     recruitForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -1022,7 +993,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!title) return alert("제목을 입력해주세요.");
       if (!description) return alert("내용을 입력해주세요.");
-      if (!Number.isFinite(totalSpots) || totalSpots < 2) return alert("모집 인원을 확인해주세요. (최소 2명)");
+      if (!Number.isFinite(totalSpots) || totalSpots < 2)
+        return alert("모집 인원을 확인해주세요. (최소 2명)");
 
       const totalMins = endHours * 60 + endMinutes;
       if (!Number.isFinite(totalMins) || totalMins <= 0) {
@@ -1035,7 +1007,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}` +
         `T${pad(end.getHours())}:${pad(end.getMinutes())}:${pad(end.getSeconds())}`;
 
-      // ✅ 백 DTO에 맞춤: preApplierid
       const preApplierid = Array.from(state.selectedFriendIds);
       const payload = { title, description, totalSpots, endTime, preApplierid };
 
@@ -1203,7 +1174,6 @@ document.addEventListener("DOMContentLoaded", () => {
       loadMyApplied(0);
     });
 
-    // 첫 진입
     setActiveTab(teamTab, friendsTab, teamTab);
     if (subWrap) subWrap.style.display = "flex";
     setActiveTab(myPostsTab, myAppliedTab, myPostsTab);
@@ -1225,7 +1195,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // -------------------------
   // GLOBAL EVENT DELEGATION
   // -------------------------
-  // 신청 버튼 (카드/상세 공용)
   contentArea?.addEventListener("click", async (e) => {
     const btn = e.target.closest(".btn-apply");
     if (!btn) return;
@@ -1246,13 +1215,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 카드 클릭 -> 상세
   contentArea?.addEventListener("click", (e) => {
     const target = e.target;
-
     if (target.classList.contains("btn-complete")) return;
 
-    const card = target.closest(".card");
+	const card = el.closest(".recruit-card");
     if (card?.dataset?.id) {
       openDetailModal(card.dataset.id).catch((err) => {
         console.error(err);
@@ -1261,7 +1228,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 카드의 마감 버튼
   contentArea?.addEventListener("click", async (e) => {
     const btn = e.target.closest(".btn-complete");
     if (!btn) return;
