@@ -17,3 +17,8 @@ swagger:
   title: "Ureca Project"
   description: "Ureca 미니 프로젝트 API 명세서"
   version: "v1.0"
+
+
+toss:
+  client-key: test_ck_eqRGgYO1r5jMKXbLR4xo8QnN2Eya
+  secret-key: test_sk_vZnjEJeQVxPN1GPgEnjqVPmOoBN0

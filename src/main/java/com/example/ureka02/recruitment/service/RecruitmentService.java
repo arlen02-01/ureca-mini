@@ -3,6 +3,9 @@ package com.example.ureka02.recruitment.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.example.ureka02.settlement.service.SettlementService;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -172,6 +175,17 @@ public class RecruitmentService {
                 .status(recruitment.getStatus())
                 .createdAt(recruitment.getCreatedAt())
                 .build();
+    }
+
+
+    @Transactional
+    public void completeRecruitment(Long recruitmentId, Integer totalAmount) {
+        Recruitment recruitment = recruitmentRepository.findById(recruitmentId).orElseThrow();
+        recruitment.complete();
+        recruitmentRepository.save(recruitment);
+
+        // 정산 자동 생성
+        settlementService.createSettlementAuto(recruitment, totalAmount);
     }
 
 }

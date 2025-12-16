@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정산 목록</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .settlement-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .settlement-card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .settlement-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .settlement-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-in-progress { background: #d1ecf1; color: #0c5460; }
+        .status-completed { background: #d4edda; color: #155724; }
+
+        .settlement-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-item {
+            font-size: 14px;
+        }
+
+        .info-label {
+            color: #999;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3182f6, #2563eb);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #666;
+            text-align: right;
+        }
+
+        .settlement-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3182f6, #2563eb);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(49, 130, 246, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📊 정산 목록</h1>
+    <div class="settlement-grid" id="grid"></div>
+</div>
+
+<script>
+    async function loadSettlements() {
+        try {
+            const response = await fetch('/api/settlements');
+            const settlements = await response.json();
+
+            const grid = document.getElementById('grid');
+
+            if (!Array.isArray(settlements) || settlements.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">정산 데이터가 없습니다.</div>';
+                return;
+            }
+
+            grid.innerHTML = settlements.map(s => {
+                const progress = (s.completedPaymentCount / s.totalPaymentCount) * 100;
+                const status = s.status.toLowerCase();
+
+                return `
+                    <div class="settlement-card">
+                        <div class="settlement-header">
+                            <div class="settlement-title">${s.recruitment.title}</div>
+                            <span class="status-badge status-${status}">${getStatusLabel(s.status)}</span>
+                        </div>
+
+                        <div class="settlement-info">
+                            <div class="info-item">
+                                <div class="info-label">총 금액</div>
+                                <div class="info-value">${s.totalAmount.toLocaleString()}원</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">1인당</div>
+                                <div class="info-value">${s.amountPerPerson.toLocaleString()}원</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">참여인원</div>
+                                <div class="info-value">${s.totalPaymentCount}명</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${progress}%"></div>
+                            </div>
+                            <div class="progress-text">결제 ${s.completedPaymentCount}/${s.totalPaymentCount} (${Math.round(progress)}%)</div>
+                        </div>
+
+                        <div class="settlement-actions">
+                            ${s.status === 'PENDING' ? `
+                                <button class="btn btn-primary" onclick="startSettlement(${s.id})">정산하기</button>
+                            ` : s.status === 'IN_PROGRESS' ? `
+                                <div style="flex: 1; text-align: center; color: #666;">
+                                    💳 결제 진행 중
+                                </div>
+                            ` : `
+                                <button class="btn btn-primary" disabled>✓ 정산완료</button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+        } catch (error) {
+            console.error('에러:', error);
+        }
+    }
+
+    function getStatusLabel(status) {
+        const labels = {
+            'PENDING': '대기중',
+            'IN_PROGRESS': '진행중',
+            'COMPLETED': '완료'
+        };
+        return labels[status] || status;
+    }
+
+    async function startSettlement(settlementId) {
+        if (!confirm('정산을 시작하시겠습니까?')) return;
+
+        try {
+            const response = await fetch(`/api/settlements/${settlementId}/start`, {
+                method: 'POST'
+            });
+
+            if (!response.ok) throw new Error('정산 시작 실패');
+
+            const result = await response.json();
+
+            alert('정산이 시작되었습니다. 모든 멤버에게 결제 요청이 생성되었습니다.');
+            loadSettlements();
+
+        } catch (error) {
+            console.error('에러:', error);
+            alert('정산 시작 중 오류가 발생했습니다.');
+        }
+    }
+
+    // 3초마다 새로고침
+    window.addEventListener('load', () => {
+        loadSettlements();
+        setInterval(loadSettlements, 3000);
+    });
+</script>
+</body>
+</html>

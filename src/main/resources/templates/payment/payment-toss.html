@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>결제 페이지</title>
+    <script src="https://js.tosspayments.com/v2/standard"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .payment-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            padding: 50px 40px;
+            max-width: 500px;
+            width: 100%;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .payment-info {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #3182f6;
+            margin-bottom: 40px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .amount-row {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .amount-row .info-value {
+            color: #3182f6;
+            font-size: 24px;
+        }
+
+        #payBtn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #3182f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(49, 130, 246, 0.3);
+        }
+
+        #payBtn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(49, 130, 246, 0.4);
+        }
+
+        #payBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3182f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading p {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="payment-container">
+    <h1>💳 결제</h1>
+
+    <div class="payment-info">
+        <div class="info-row">
+            <span class="info-label">결제자</span>
+            <span class="info-value" id="memberName">로딩중...</span>
+        </div>
+        <div class="info-row amount-row">
+            <span class="info-label">결제 금액</span>
+            <span class="info-value" id="amount">0원</span>
+        </div>
+    </div>
+
+    <button id="payBtn">결제하기</button>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>처리 중입니다...</p>
+    </div>
+</div>
+
+<script>
+    // URL에서 파라미터 추출
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentId = urlParams.get('paymentId');
+
+    let orderId = '';
+    let amount = 0;
+    let customerKey = '';
+    let clientKey = '';
+    let memberName = '';
+    let settlementId = '';
+
+    // 결제 정보 로드
+    async function loadPaymentInfo() {
+        try {
+            const response = await fetch(`/api/payments/${paymentId}`);
+            if (!response.ok) throw new Error('결제 정보 로드 실패');
+
+            const data = await response.json();
+
+            orderId = data.orderId;
+            amount = data.amount;
+            customerKey = data.customerKey;
+            memberName = data.member.member.name;
+            settlementId = data.settlement.id;
+
+            document.getElementById('memberName').textContent = memberName;
+            document.getElementById('amount').textContent = amount.toLocaleString() + '원';
+
+            // 토스 결제 SDK 초기화
+            initTossPayments();
+
+        } catch (error) {
+            console.error('에러:', error);
+            alert('결제 정보를 불러올 수 없습니다.');
+        }
+    }
+
+    // 토스 결제 SDK 초기화
+    function initTossPayments() {
+        clientKey = document.querySelector('script').getAttribute('data-client-key') || 'test_ck_eqRGgYO1r5jMKXbLR4xo8QnN2Eya';
+
+        const tossPayments = TossPayments(clientKey);
+        const payment = tossPayments.payment({ customerKey: customerKey });
+
+        document.getElementById('payBtn').addEventListener('click', async () => {
+            const payBtn = document.getElementById('payBtn');
+            const loading = document.getElementById('loading');
+
+            payBtn.disabled = true;
+            loading.style.display = 'block';
+
+            try {
+                await payment.requestPayment({
+                    method: 'CARD',
+                    amount: { currency: 'KRW', value: amount },
+                    orderId: orderId,
+                    orderName: '식사 정산',
+                    successUrl: window.location.origin + '/payment/success-redirect',
+                    failUrl: window.location.origin + '/payment/fail-redirect'
+                });
+            } catch (error) {
+                console.error('결제 요청 중 에러:', error);
+                payBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+    }
+
+    // 페이지 로드
+    window.addEventListener('load', loadPaymentInfo);
+</script>
+</body>
+</html>
