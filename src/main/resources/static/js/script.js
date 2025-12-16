@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const contentArea = $("#contentArea");
   const detailApplyBtn = $("#detailApplyBtn");
 
-
   // Home tabs
   const homeTabs = {
     team: $("#teamBox"),
@@ -20,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const recruitForm = $("#recruitForm");
   const closeRecruitBtn = $("#closeRecruitBtn");
 
-  // Detail modal (home에만 있어도 됨)
+  // Detail modal
   const detailModal = $("#detailModal");
   const detailCloseBtn = $("#detailCloseBtn");
   const detailCompleteBtn = $("#detailCompleteBtn");
@@ -43,11 +42,34 @@ document.addEventListener("DOMContentLoaded", () => {
     my: { page: 0, size: 5 },
     applied: { page: 0, size: 5 },
     countdownTimer: null,
-	selectedFriendIds: new Set(),
-	selectedFriendNames: new Map(),
-    view: "myPosts", // "homeTeam" | "myPosts" | "myApplied"
+    selectedFriendIds: new Set(),
+    selectedFriendNames: new Map(),
+    view: "myPosts", // "homeTeam" | "myPosts" | "myApplied" | friends...
   };
 
+  // -------------------------
+  // Modal Position (현재 위치 기준 가운데)
+  // -------------------------
+  function centerModalAtViewport(modalEl) {
+    if (!modalEl) return;
+    const modalContent = modalEl.querySelector(".modal-content");
+    if (!modalContent) return;
+
+    // 화면 기준 fixed + 가운데
+    modalEl.style.position = "fixed";
+    modalEl.style.inset = "0";
+    modalEl.style.display = "flex";
+    modalEl.style.alignItems = "center";
+    modalEl.style.justifyContent = "center";
+
+    // 스크롤해도 현재 viewport 가운데 유지
+    modalContent.style.maxHeight = "80vh";
+    modalContent.style.overflow = "auto";
+  }
+
+  // 모달 열릴 때마다 적용
+  if (recruitModal) centerModalAtViewport(recruitModal);
+  if (detailModal) centerModalAtViewport(detailModal);
 
   // -------------------------
   // CSRF Helpers
@@ -89,6 +111,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function setActive3(a, b, c, active) {
+    [a, b, c].forEach((el) => {
+      if (!el) return;
+      el.classList.add("tab-btn");
+      el.classList.toggle("active-tab", el === active);
+    });
+  }
+
   // -------------------------
   // API
   // -------------------------
@@ -99,16 +129,16 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const res = await fetch(url, merged);
-
     const ct = (res.headers.get("content-type") || "").toLowerCase();
-
-    // 먼저 text로 읽어서(HTML이면 여기서 잡힘) 필요하면 JSON 파싱
     const rawText = await res.text();
 
-    // ❗️HTML(로그인 페이지/에러 페이지/thymeleaf)이면 바로 원인 보여주기
-    const looksLikeHtml = ct.includes("text/html") || rawText.trim().startsWith("<!doctype") || rawText.trim().startsWith("<html");
+    const looksLikeHtml =
+      ct.includes("text/html") ||
+      rawText.trim().startsWith("<!doctype") ||
+      rawText.trim().startsWith("<html");
+
     if (looksLikeHtml) {
-      console.error("❗️서버가 JSON 대신 HTML을 반환했습니다. (대부분 로그인 리다이렉트/권한/https 문제)", {
+      console.error("❗️서버가 JSON 대신 HTML을 반환했습니다.", {
         url,
         status: res.status,
         contentType: ct,
@@ -118,10 +148,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let data = null;
-    if (ct.includes("application/json")) {
-      data = JSON.parse(rawText);
-    } else {
-      // content-type이 애매해도 JSON일 수 있으니 한번 시도
+    if (ct.includes("application/json")) data = JSON.parse(rawText);
+    else {
       try {
         data = JSON.parse(rawText);
       } catch {
@@ -135,11 +163,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return data;
   }
+
   // -------------------------
   // Pagination Render
   // -------------------------
   function renderPagination(pageObj) {
-    const current = pageObj.number ?? 0; // 0-based
+    const current = pageObj.number ?? 0;
     const total = pageObj.totalPages ?? 1;
     const isFirst = !!pageObj.first;
     const isLast = !!pageObj.last;
@@ -154,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------
-  // Countdown (공통)
+  // Countdown
   // -------------------------
   function startCountdown() {
     if (state.countdownTimer) {
@@ -190,7 +219,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (diff <= 0) {
           el.textContent = "마감";
-          // 카드라면 색 바꾸기
           const c = el.closest(".card");
           if (c) {
             c.classList.remove("open");
@@ -213,19 +241,45 @@ document.addEventListener("DOMContentLoaded", () => {
     update();
     state.countdownTimer = setInterval(update, 1000);
   }
-  
+
+  // -------------------------
+  // Helpers
+  // -------------------------
+  function escapeHtml(str) {
+    return String(str ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
   function hasApplied(applications) {
     if (!Array.isArray(applications)) return false;
     if (CURRENT_USER_ID == null) return false;
-
-    return applications.some(app => Number(app.userId) === Number(CURRENT_USER_ID));
+    return applications.some((app) => Number(app.userId) === Number(CURRENT_USER_ID));
   }
 
+  // 로그인 유저 이름
+  function currentUserNameSafe() {
+    if (typeof CURRENT_USER_NAME === "undefined") return null;
+    return CURRENT_USER_NAME == null ? null : String(CURRENT_USER_NAME);
+  }
 
+  // -------------------------
+  // Recruit API
+  // -------------------------
   async function applyRecruit(recruitId) {
-    // CSRF/credentials는 fetchJson이 알아서 넣고 있으니 그대로 사용
     return await fetchJson(`/recruitments/apply/${recruitId}`, { method: "POST" });
   }
+
+  async function completeRecruit(recruitId) {
+    await fetchJson(`/recruitments/${recruitId}/complete`, { method: "POST" });
+  }
+
+  // -------------------------
+  // Friend Picker (모집하기 모달 내부)
+  // -------------------------
   recruitModal?.addEventListener("click", (e) => {
     const openBtn = e.target.closest("#openFriendPickerBtn");
     if (openBtn) {
@@ -259,38 +313,105 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  async function loadFriendPicker() {
+    const picker = $("#friendPicker");
+    const listWrap = $("#friendPickerList");
+    if (!picker || !listWrap) return;
 
-  contentArea?.addEventListener("click", async (e) => {
-	const btn = e.target.closest(".btn-apply");
-	if (!btn) return;
-	
-    e.stopPropagation(); // 카드 상세 열기 막기
-    const id = btn.dataset.id;
-    if (!id) return;
-
-    if (!confirm("이 모집에 신청하시겠습니까?")) return;
+    picker.classList.remove("hidden");
+    listWrap.innerHTML = `<p>불러오는 중...</p>`;
 
     try {
-      await applyRecruit(id);
+      const res = await fetchJson(`/friends/list`);
+      const list = res?.data ?? [];
 
-      // 신청 성공 → 리스트 새로고침(인원 수 갱신)
-      refreshCurrentList();
-      alert("신청이 완료되었습니다!");
-    } catch (err) {
-      console.error(err);
+      if (!Array.isArray(list) || list.length === 0) {
+        listWrap.innerHTML = `<p class="muted">친구가 없습니다.</p>`;
+        return;
+      }
 
-      // 백엔드가 상태코드로 구분해주면 여기서 분기 가능
-      // 예: 409 = 정원초과 / 400 = 이미 신청 / 401 = 로그인 필요
-      alert("신청에 실패했습니다. (정원 초과/중복 신청/로그인 필요 여부 확인)");
+      listWrap.innerHTML = `
+        <div class="card-container">
+          ${list
+            .map((f) => {
+              const name =
+                Number(f.senderId) === Number(CURRENT_USER_ID)
+                  ? escapeHtml(f.receiverName)
+                  : escapeHtml(f.senderName);
+
+              const friendUserId =
+                Number(f.senderId) === Number(CURRENT_USER_ID) ? f.receiverId : f.senderId;
+
+              const disabled = state.selectedFriendIds.has(Number(friendUserId));
+              return `
+                <div class="card open" style="cursor:default;">
+                  <div class="ctitle">${name}</div>
+                  <div class="card-actions">
+                    <button class="btn-pick-friend"
+                      data-user-id="${friendUserId}"
+                      data-name="${name}"
+                      ${disabled ? "disabled" : ""}>
+                      ${disabled ? "선택됨" : "넣기"}
+                    </button>
+                  </div>
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      `;
+    } catch (e) {
+      console.error(e);
+      listWrap.innerHTML = `<p class="muted">친구 목록을 불러오지 못했습니다.</p>`;
     }
-  });
+  }
 
+  function renderSelectedFriends() {
+    const selected = $("#selectedFriends");
+    if (!selected) return;
+
+    const ids = Array.from(state.selectedFriendIds);
+    if (ids.length === 0) {
+      selected.innerHTML = `<p class="muted">선택된 친구 없음</p>`;
+      return;
+    }
+
+    selected.innerHTML = `
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        ${ids
+          .map((id) => {
+            const name = state.selectedFriendNames.get(Number(id)) || `ID:${id}`;
+            return `
+              <span style="border:1px solid #ddd; padding:4px 8px; border-radius:999px;">
+                ${escapeHtml(name)}
+                <button type="button" class="btn-remove-picked" data-user-id="${id}" style="margin-left:6px;">x</button>
+              </span>
+            `;
+          })
+          .join("")}
+      </div>
+    `;
+  }
+
+  function resetFriendSelectionUI() {
+    state.selectedFriendIds.clear();
+    state.selectedFriendNames.clear();
+
+    const selected = $("#selectedFriends");
+    if (selected) selected.innerHTML = `<p class="muted">선택된 친구 없음</p>`;
+
+    const picker = $("#friendPicker");
+    if (picker) picker.classList.add("hidden");
+  }
+
+  // -------------------------
+  // Friends (마이페이지)
+  // -------------------------
   function renderFriendsLayout() {
     contentArea.innerHTML = `
       <div class="list-header">
         <h2>친구</h2>
       </div>
-
       <div id="friendsView"></div>
     `;
   }
@@ -310,7 +431,8 @@ document.addEventListener("DOMContentLoaded", () => {
     view.innerHTML = `
       <h3>친구 찾기</h3>
       <div style="display:flex; gap:8px; width:100%; align-items:center;">
-        <input id="friendNameInput" type="text" placeholder="이름 입력" style="flex:1; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
+        <input id="friendNameInput" type="text" placeholder="이름 입력"
+          style="flex:1; padding:6px 8px; border-radius:6px; border:1px solid #ccc;">
         <button id="sendFriendReqBtn" class="page-btn">전송</button>
       </div>
 
@@ -320,16 +442,20 @@ document.addEventListener("DOMContentLoaded", () => {
       <div id="recommendList"><p>불러오는 중...</p></div>
     `;
 
-    // 전송(친구 요청)
+    // ✅ 전송(친구 요청) - 자기 자신에게 요청 막기
     $("#sendFriendReqBtn")?.addEventListener("click", async () => {
       const name = $("#friendNameInput")?.value?.trim();
       if (!name) return alert("이름을 입력해주세요.");
 
+      const me = currentUserNameSafe();
+      if (me && String(name).trim() === me.trim()) {
+        return alert("자기 자신에게는 친구 요청을 보낼 수 없습니다.");
+      }
+
       try {
-        // ✅ /friends/request?receiverName=...
-		await fetchJson(`/friends/request?receiverName=${encodeURIComponent(name)}`, {
-		  method: "POST",
-		});
+        await fetchJson(`/friends/request?receiverName=${encodeURIComponent(name)}`, {
+          method: "POST",
+        });
 
         alert("친구 요청을 전송했습니다.");
         $("#friendNameInput").value = "";
@@ -341,8 +467,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 추천 리스트
     try {
-      // ✅ 추천: GET /friends?limit=10
-	  const res = await fetchJson(`/friends/recommend?limit=10`);
+      const res = await fetchJson(`/friends/recommend?limit=10`);
       const list = res?.data ?? [];
 
       const wrap = $("#recommendList");
@@ -353,33 +478,37 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // FriendRecommendDto 필드명을 모르니 name 계열로 최대한 안전하게 처리
       wrap.innerHTML = `
         <div class="card-container">
-          ${list.map(r => {
-			const nm = r.userName;
-			const common = r.commonCount; // 공통친구 수
-			const userId = r.userId;
-            return `
-              <div class="card open" style="cursor:default;">
-			  	<div class="ctitle">${nm}</div>
-			  	<div class="meta">공통 친구 ${common}명</div>
-                <div class="card-actions">
-                  <button class="btn-send-recommend" data-name="${nm}">요청</button>
+          ${list
+            .map((r) => {
+              const nm = r.userName;
+              const common = r.commonCount;
+              return `
+                <div class="card open" style="cursor:default;">
+                  <div class="ctitle">${escapeHtml(nm)}</div>
+                  <div class="meta">공통 친구 ${common}명</div>
+                  <div class="card-actions">
+                    <button class="btn-send-recommend" data-name="${escapeHtml(nm)}">요청</button>
+                  </div>
                 </div>
-              </div>
-            `;
-          }).join("")}
+              `;
+            })
+            .join("")}
         </div>
       `;
 
-      // 추천에서 바로 요청 보내기
       wrap.addEventListener("click", async (e) => {
         const btn = e.target.closest(".btn-send-recommend");
         if (!btn) return;
 
         const receiverName = btn.dataset.name;
         if (!receiverName) return;
+
+        const me = currentUserNameSafe();
+        if (me && String(receiverName).trim() === me.trim()) {
+          return alert("자기 자신에게는 친구 요청을 보낼 수 없습니다.");
+        }
 
         try {
           await fetchJson(`/friends/request?receiverName=${encodeURIComponent(receiverName)}`, {
@@ -393,7 +522,6 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("친구 요청 전송에 실패했습니다.");
         }
       });
-
     } catch (e) {
       console.error(e);
       $("#recommendList").innerHTML = `<p class="muted">추천 목록을 불러오지 못했습니다.</p>`;
@@ -418,7 +546,6 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     try {
-      // ✅ GET /friends/requests
       const res = await fetchJson(`/friends/requests`);
       const list = res?.data ?? [];
 
@@ -430,35 +557,33 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // FriendDto 필드명도 확정이 아니라 안전하게 처리
       wrap.innerHTML = `
         <div class="card-container">
-          ${list.map(f => {
-			const friendshipId = f.id;
-			const sender = f.senderName;
-
-            return `
-              <div class="card open" style="cursor:default;">
-                <div class="ctitle">${sender}</div>
-                <div class="card-actions">
-                  <button class="btn-accept" data-id="${friendshipId}">수락</button>
-                  <button class="btn-reject" data-id="${friendshipId}">거절</button>
+          ${list
+            .map((f) => {
+              const friendshipId = f.id;
+              const sender = f.senderName;
+              return `
+                <div class="card open" style="cursor:default;">
+                  <div class="ctitle">${escapeHtml(sender)}</div>
+                  <div class="card-actions">
+                    <button class="btn-accept" data-id="${friendshipId}">수락</button>
+                    <button class="btn-reject" data-id="${friendshipId}">거절</button>
+                  </div>
                 </div>
-              </div>
-            `;
-          }).join("")}
+              `;
+            })
+            .join("")}
         </div>
       `;
 
-      // 수락/거절 이벤트 위임
       wrap.addEventListener("click", async (e) => {
         const acceptBtn = e.target.closest(".btn-accept");
         const rejectBtn = e.target.closest(".btn-reject");
-
         if (!acceptBtn && !rejectBtn) return;
 
         const id = (acceptBtn || rejectBtn).dataset.id;
-        if (!id) return alert("friendshipId가 없습니다. FriendDto 필드를 확인해주세요.");
+        if (!id) return alert("friendshipId가 없습니다.");
 
         try {
           if (acceptBtn) {
@@ -468,33 +593,36 @@ document.addEventListener("DOMContentLoaded", () => {
             await fetchJson(`/friends/${id}/reject`, { method: "POST" });
             alert("친구 요청을 거절했습니다.");
           }
-          loadFriendRequests(); // 갱신
+          loadFriendRequests();
         } catch (err) {
           console.error(err);
           alert("처리에 실패했습니다.");
         }
       });
-
     } catch (e) {
       console.error(e);
       $("#requestList").innerHTML = `<p class="muted">요청 목록을 불러오지 못했습니다.</p>`;
     }
   }
+
   async function loadFriendList() {
     state.view = "friendsList";
     renderFriendsLayout();
+
     const view = $("#friendsView");
     if (!view) return;
+
     if (CURRENT_USER_ID === null) {
       view.innerHTML = `<p>로그인 후 이용 가능합니다.</p>`;
       return;
     }
+
     view.innerHTML = `
       <h3>내 친구 목록</h3>
       <div id="friendList"><p>불러오는 중...</p></div>
     `;
+
     try {
-      // ✅ GET /friends/list
       const res = await fetchJson(`/friends/list`);
       const list = res?.data ?? [];
 
@@ -505,38 +633,40 @@ document.addEventListener("DOMContentLoaded", () => {
         wrap.innerHTML = `<p class="muted">친구가 없습니다.</p>`;
         return;
       }
+
       wrap.innerHTML = `
         <div class="card-container">
-          ${list.map(f => {
-			const friendshipId = f.id;
-			const name =
-			  Number(f.senderId) === Number(CURRENT_USER_ID)
-			    ? escapeHtml(f.receiverName)
-			    : escapeHtml(f.senderName);
+          ${list
+            .map((f) => {
+              const friendshipId = f.id;
+              const name =
+                Number(f.senderId) === Number(CURRENT_USER_ID)
+                  ? escapeHtml(f.receiverName)
+                  : escapeHtml(f.senderName);
 
-
-            return `
-              <div class="card open" style="cursor:default;">
-                <div class="ctitle">${name}</div>
-                <div class="card-actions">
-                  <button class="btn-delete-friend" data-id="${friendshipId}">삭제</button>
+              return `
+                <div class="card open" style="cursor:default;">
+                  <div class="ctitle">${name}</div>
+                  <div class="card-actions">
+                    <button class="btn-delete-friend" data-id="${friendshipId}">삭제</button>
+                  </div>
                 </div>
-              </div>
-            `;
-          }).join("")}
+              `;
+            })
+            .join("")}
         </div>
       `;
+
       wrap.addEventListener("click", async (e) => {
         const btn = e.target.closest(".btn-delete-friend");
         if (!btn) return;
 
         const id = btn.dataset.id;
-        if (!id) return alert("friendshipId가 없습니다. FriendDto 필드를 확인해주세요.");
+        if (!id) return alert("friendshipId가 없습니다.");
 
         if (!confirm("친구를 삭제하시겠습니까?")) return;
 
         try {
-          // ✅ DELETE /friends/{friendshipId}
           await fetchJson(`/friends/${id}`, { method: "DELETE" });
           alert("친구가 삭제되었습니다.");
           loadFriendList();
@@ -545,198 +675,95 @@ document.addEventListener("DOMContentLoaded", () => {
           alert("친구 삭제에 실패했습니다.");
         }
       });
-
     } catch (e) {
       console.error(e);
       $("#friendList").innerHTML = `<p class="muted">친구 목록을 불러오지 못했습니다.</p>`;
     }
   }
-  
-  
+
   // -------------------------
-  // Render Recruit Cards (공통)
+  // Render Recruit Cards
   // -------------------------
   function renderRecruitCards(list, opts = { mode: "HOME" }) {
     const mode = opts.mode ?? "HOME";
-
     list.sort((a, b) => Number(b.id) - Number(a.id));
 
-    return list.map((item) => {
-      const isClosed = item.status === "CLOSED" || item.status === "COMPLETED";
-      const isOwner =
-        CURRENT_USER_ID != null &&
-        item.creatorId != null &&
-        Number(item.creatorId) === Number(CURRENT_USER_ID);
+    return list
+      .map((item) => {
+        const isClosed = item.status === "CLOSED" || item.status === "COMPLETED";
 
-      let ownerBtns = "";
+        // 백에서 list API에 creatorId가 없을 수도 있음 => creatorName 비교도 fallback
+        const meName = currentUserNameSafe();
+        const isOwner =
+          (CURRENT_USER_ID != null && item.creatorId != null && Number(item.creatorId) === Number(CURRENT_USER_ID)) ||
+          (meName && item.creatorName && String(item.creatorName) === meName);
 
-      // ✅ HOME에서도 작성자면 마감 버튼 노출
-      if ((mode === "HOME" || mode === "MYPAGE_MYPOSTS") && isOwner && !isClosed) {
-        ownerBtns = `
-          <div class="card-actions">
-            <button class="btn-complete" data-id="${item.id}">마감</button>
+        let ownerBtns = "";
+
+        // ✅ HOME에서도 작성자면 마감 버튼
+        if ((mode === "HOME" || mode === "MYPAGE_MYPOSTS") && isOwner && !isClosed) {
+          ownerBtns = `
+            <div class="card-actions">
+              <button class="btn-complete" data-id="${item.id}">마감</button>
+            </div>
+          `;
+        }
+
+        const onOff = isClosed ? "closed" : "open";
+
+        return `
+          <div class="card ${onOff}" data-status="${item.status}" data-id="${item.id}">
+            <div class="ctitle">${escapeHtml(item.title ?? "")}</div>
+            <div class="authorSpotsTime">
+              <div class="meta">작성자: ${escapeHtml(item.creatorName ?? "")}</div>
+              <div class="meta">인원: ${item.currentSpots} / ${item.totalSpots}</div>
+              <div class="meta">
+                마감까지:
+                <span class="countdown" data-end-time="${item.endTime ?? ""}"></span>
+              </div>
+            </div>
+            ${ownerBtns}
           </div>
         `;
-      }
-
-      const onOff = isClosed ? "closed" : "open";
-
-      return `
-        <div class="card ${onOff}" data-status="${item.status}" data-id="${item.id}">
-          <div class="ctitle">${escapeHtml(item.title ?? "")}</div>
-          <div class="authorSpotsTime">
-            <div class="meta">작성자: ${escapeHtml(item.creatorName ?? "")}</div>
-            <div class="meta">인원: ${item.currentSpots} / ${item.totalSpots}</div>
-            <div class="meta">
-              마감까지:
-              <span class="countdown" data-end-time="${item.endTime ?? ""}"></span>
-            </div>
-          </div>
-          ${ownerBtns}
-        </div>
-      `;
-    }).join("");
+      })
+      .join("");
   }
-
-
-
-
-  function escapeHtml(str) {
-    return String(str ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
-  }
-
 
   // -------------------------
-  // COMPLETE (공통)
-  // -------------------------
-  async function completeRecruit(recruitId) {
-    await fetchJson(`/recruitments/${recruitId}/complete`, { method: "POST" });
-  }
-
-  function refreshCurrentList() {
-    if (state.view === "homeTeam") {
-      loadHomeTeam(state.home.page);
-    } else if (state.view === "myPosts") {
-      loadMyPosts(state.my.page);
-    } else if (state.view === "myApplied") {
-      loadMyApplied(state.applied.page);
-    } else if (state.view === "friendsFind") {
-      loadFriendFind();
-    } else if (state.view === "friendsRequests") {
-      loadFriendRequests();
-    } else if (state.view === "friendsList") {
-      loadFriendList();
-    }
-  }
-
-
-
-  function initMyPage() {
-    const teamTab = $("#teamTab");
-    const friendsTab = $("#friendsTab");
-    const subWrap = $("#teamSubTabs");
-    const myPostsTab = $("#myPostsTab");
-    const myAppliedTab = $("#myAppliedTab");
-	const friendsSubTabs = $("#friendsSubTabs");
-	const friendFindTab = $("#friendFindTab");
-	const friendRequestsTab = $("#friendRequestsTab");
-	const friendListTab = $("#friendListTab");
-
-	teamTab?.addEventListener("click", () => {
-	  setActiveTab(teamTab, friendsTab, teamTab);
-
-	  if (subWrap) subWrap.style.display = "flex";
-	  if (friendsSubTabs) friendsSubTabs.style.display = "none"; // ✅ 추가
-
-	  setActiveTab(myPostsTab, myAppliedTab, myPostsTab);
-	  loadMyPosts(0);
-	});
-
-
-	friendsTab?.addEventListener("click", () => {
-	  setActiveTab(teamTab, friendsTab, friendsTab);
-
-	  if (subWrap) subWrap.style.display = "none";
-	  if (friendsSubTabs) friendsSubTabs.style.display = "flex";
-
-	  // 기본: 친구찾기
-	  [friendFindTab, friendRequestsTab, friendListTab].forEach(el => el?.classList.remove("active-tab"));
-	  friendFindTab?.classList.add("active-tab");
-	  loadFriendFind();
-	});
-
-
-	// 하위탭 클릭
-	friendFindTab?.addEventListener("click", () => {
-	  setActive3(friendFindTab, friendRequestsTab, friendListTab, friendFindTab);
-	  loadFriendFind();
-	});
-
-	friendRequestsTab?.addEventListener("click", () => {
-	  setActive3(friendFindTab, friendRequestsTab, friendListTab, friendRequestsTab);
-	  loadFriendRequests();
-	});
-	
-	friendListTab?.addEventListener("click", () => {
-	  setActive3(friendFindTab, friendRequestsTab, friendListTab, friendListTab);
-	  loadFriendList();
-	});
-
-    myPostsTab?.addEventListener("click", () => {
-      setActiveTab(myPostsTab, myAppliedTab, myPostsTab);
-      loadMyPosts(0);
-    });
-
-    myAppliedTab?.addEventListener("click", () => {
-      setActiveTab(myPostsTab, myAppliedTab, myAppliedTab);
-      loadMyApplied(0);
-    });
-
-    // ✅ 첫 진입: 팀 활성 + 내가 쓴 글 활성
-    setActiveTab(teamTab, friendsTab, teamTab);
-    if (subWrap) subWrap.style.display = "flex";
-    setActiveTab(myPostsTab, myAppliedTab, myPostsTab);
-    loadMyPosts(0);
-  }
-  
-  
-  // -------------------------
-  // DETAIL MODAL (전체)
+  // DETAIL MODAL
   // -------------------------
   async function openDetailModal(recruitId) {
-
     const idNum = Number(recruitId);
     if (!Number.isFinite(idNum)) return;
 
-    // 1) 상세 조회
     const body = await fetchJson(`/recruitments/${idNum}`);
     const d = body?.data ?? body;
-	console.log("detail creatorId =", d.creatorId, "detail =", d);
-
     if (!d) throw new Error("No detail data");
 
-    // 2) 신청자 목록 (DTO 오타 그대로)
-	const applications = Array.isArray(d.apllications) ? d.apllications : [];
+    // 신청자/팀원 목록 (DTO 오타 그대로)
+    let applications = Array.isArray(d.apllications) ? d.apllications : [];
 
-    // 3) 공통 상태 계산
+    // ✅ 백에서 "작성자는 무조건 포함"이라 했으니:
+    // 혹시 프론트에서 안 내려오는 케이스 대비해서, 비어있으면 작성자 1명이라도 표시
+    if (applications.length === 0 && d.creatorName) {
+      applications = [{ name: d.creatorName, userId: d.creatorId ?? null, order: 1 }];
+    }
+
     const isClosed = d.status === "CLOSED" || d.status === "COMPLETED";
-	const isOwner =
-	  CURRENT_USER_NAME != null &&
-	  d.creatorName != null &&
-	  String(d.creatorName) === String(CURRENT_USER_NAME);
+    const meName = currentUserNameSafe();
 
+    // ✅ owner 판단은 이름 비교(creatorId가 undefined라서)
+    const isOwner = meName && d.creatorName && String(d.creatorName) === meName;
 
-    const isFull =
-      Number(d.currentSpots ?? 0) >= Number(d.totalSpots ?? 0);
+    const isFull = Number(d.currentSpots ?? 0) >= Number(d.totalSpots ?? 0);
 
-    const applied = hasApplied(applications); // applications 내 userId == CURRENT_USER_ID
+    // ✅ 내가 이미 팀원(=applications 안에 name으로 존재)이라면 신청버튼 숨김
+    const isMemberByName =
+      !!meName && applications.some((a) => String(a?.name ?? "").trim() === meName.trim());
 
-    // 4) 모달 내용 채우기
+    const applied = hasApplied(applications);
+
+    // 모달 내용 채우기
     if (detailTitle) detailTitle.textContent = d.title ?? "-";
     if (detailCreator) detailCreator.textContent = d.creatorName ?? "-";
     if (detailSpots) detailSpots.textContent = `${d.currentSpots ?? 0} / ${d.totalSpots ?? 0}`;
@@ -746,21 +773,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (detailCountdown) detailCountdown.setAttribute("data-end-time", d.endTime ?? "");
     if (detailModal) detailModal.setAttribute("data-status", d.status ?? "");
 
-    // 신청자 목록 렌더링 (userId/name/order 기준)
+    // 팀원 목록 렌더링
     const appsWrap = $("#detailApps");
     if (appsWrap) {
       appsWrap.innerHTML = applications.length
         ? `<ul class="apps-list">
-            ${applications.map(a => {
-              const nm = escapeHtml(a?.name ?? "알 수 없음");
-              const ord = (a?.order != null) ? ` (#${a.order})` : "";
-              return `<li>${nm}${ord}</li>`;
-            }).join("")}
+            ${applications
+              .map((a) => {
+                const nm = escapeHtml(a?.name ?? "알 수 없음");
+                const ord = a?.order != null ? ` (#${a.order})` : "";
+                return `<li>${nm}${ord}</li>`;
+              })
+              .join("")}
           </ul>`
-        : `<p class="muted">신청자가 없습니다.</p>`;
+        : `<p class="muted">팀원이 없습니다.</p>`;
     }
 
-    // 5) 버튼 기본 초기화 (일단 다 숨김)
+    // 버튼 초기화
     if (detailApplyBtn) {
       detailApplyBtn.style.display = "none";
       detailApplyBtn.disabled = false;
@@ -768,41 +797,29 @@ document.addEventListener("DOMContentLoaded", () => {
       detailApplyBtn.dataset.id = String(d.id ?? idNum);
       detailApplyBtn.classList.add("btn-apply");
     }
-
     if (detailCompleteBtn) {
       detailCompleteBtn.style.display = "none";
       detailCompleteBtn.dataset.id = String(d.id ?? idNum);
     }
 
-    // 6) 화면별 버튼 정책 적용
-    // - myPosts: 마감 버튼만(마감된 글이면 숨김)
-    // - myApplied: 버튼 둘 다 없음
-    // - homeTeam: (원하면) 신청/마감 정책 적용 가능
+    // 화면별 정책
     if (state.view === "myPosts") {
-      // 내가 쓴 글: 마감 버튼만
-      if (detailCompleteBtn) {
-        detailCompleteBtn.style.display = (!isClosed) ? "inline-block" : "none";
-      }
-      // 신청 버튼은 항상 숨김 유지
+      // 내가 쓴 글: 마감만
+      if (detailCompleteBtn) detailCompleteBtn.style.display = !isClosed ? "inline-block" : "none";
     } else if (state.view === "myApplied") {
-      // 내가 신청한 글: 버튼 없음(상세만)
-      // 둘 다 숨김 유지
+      // 내가 신청한 글: 버튼 없음
     } else {
-      // 홈(또는 기타): 여기서는 "상세에서 신청" UX를 그대로 유지한다고 가정
-      // - 작성자면 마감 버튼
-      // - 작성자 아니면 신청 버튼
-      // - 마감/정원초과/이미신청이면 신청 비활성
+      // HOME
       if (isOwner) {
-        if (detailCompleteBtn) {
-          detailCompleteBtn.style.display = (!isClosed) ? "inline-block" : "none";
-        }
+        if (detailCompleteBtn) detailCompleteBtn.style.display = !isClosed ? "inline-block" : "none";
       } else {
+        // ✅ 내가 팀원(초대 포함)이면 신청 버튼 숨김
         if (detailApplyBtn) {
-          if (isClosed) {
+          if (isClosed || isMemberByName) {
             detailApplyBtn.style.display = "none";
           } else {
             detailApplyBtn.style.display = "inline-block";
-            // 이미 신청했거나 정원 초과면 비활성화
+
             if (applied || isFull) {
               detailApplyBtn.disabled = true;
               detailApplyBtn.textContent = applied ? "신청완료" : "정원마감";
@@ -815,14 +832,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // 7) 모달 오픈 + 카운트다운 시작
-    if (detailModal) detailModal.classList.remove("hidden");
-    startCountdown();
+	// 오픈 (상세도 현재 화면 기준 중앙)
+	openCenteredModal(detailModal);
+	startCountdown();
   }
-
-
-
-
 
   function closeDetailModal() {
     detailModal?.classList.add("hidden");
@@ -830,17 +843,15 @@ document.addEventListener("DOMContentLoaded", () => {
     if (detailCompleteBtn) detailCompleteBtn.dataset.id = "";
   }
 
-  // 상세 모달 닫기 이벤트
-  $("#detailCloseBtn")?.addEventListener("click", () => {
-    detailModal?.classList.add("hidden");
-  });
+  // 상세 모달 닫기
+  detailCloseBtn?.addEventListener("click", closeDetailModal);
   detailModal?.addEventListener("click", (e) => {
-    if (e.target === detailModal) detailModal.classList.add("hidden");
+    if (e.target === detailModal) closeDetailModal();
   });
 
+  // 상세 모달 신청
   detailApplyBtn?.addEventListener("click", async () => {
     if (detailApplyBtn.disabled) return;
-
     const id = detailApplyBtn.dataset.id;
     if (!id) return;
 
@@ -848,14 +859,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       await applyRecruit(id);
-
       alert("신청이 완료되었습니다!");
-
-      // 버튼 즉시 비활성화
       detailApplyBtn.textContent = "신청완료";
       detailApplyBtn.disabled = true;
-
-      // 신청자 목록 갱신
       refreshCurrentList();
     } catch (e) {
       console.error(e);
@@ -863,8 +869,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-
-  // 상세 모달에서 마감
+  // 상세 모달 마감
   detailCompleteBtn?.addEventListener("click", async () => {
     const id = detailCompleteBtn.dataset.id;
     if (!id) return;
@@ -881,7 +886,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // -------------------------
-  // HOME: 팀(모집글 목록) + 게시판
+  // HOME
   // -------------------------
   async function loadHomeTeam(page = state.home.page) {
     state.view = "homeTeam";
@@ -910,19 +915,17 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <div class="card-container">
-          ${renderRecruitCards(list)}
+          ${renderRecruitCards(list, { mode: "HOME" })}
         </div>
 
         ${renderPagination(body.data)}
       `;
-
-      // 모집하기 모달 열기
+	  
 	  $("#openRecruitFormBtn")?.addEventListener("click", () => {
-	    recruitModal?.classList.remove("hidden");
-	    resetFriendSelectionUI(); // ✅
+	    openCenteredModal(recruitModal);
+	    resetFriendSelectionUI();
 	  });
 
-      // pagination
       $("#prevPageBtn")?.addEventListener("click", () => {
         if (!body.data.first) loadHomeTeam(state.home.page - 1);
       });
@@ -936,13 +939,29 @@ document.addEventListener("DOMContentLoaded", () => {
       setError();
     }
   }
+  function openCenteredModal(modalEl) {
+    if (!modalEl) return;
+
+    const modalContent = modalEl.querySelector(".modal-content");
+    if (!modalContent) return;
+
+    modalEl.classList.remove("hidden");
+
+    // 현재 스크롤 기준 중앙 계산
+    const scrollY = window.scrollY || document.documentElement.scrollTop;
+    const viewportHeight = window.innerHeight;
+
+    modalContent.style.position = "absolute";
+    modalContent.style.top = `${scrollY + viewportHeight / 2}px`;
+    modalContent.style.transform = "translateY(-50%)";
+  }
 
   function showHomeBoard() {
-    state.view = "homeTeam"; // 게시판은 아직 별도 페이지 상태가 없으니 homeTeam 유지
+    state.view = "homeTeam";
     contentArea.innerHTML = `
       <h2>info</h2>
       <p>누구랑 밥먹을지 고민중인 당신!</p>
-	  <p>빠르게 밥메이트를 찾아봅시다!</p>
+      <p>빠르게 밥메이트를 찾아봅시다!</p>
     `;
   }
 
@@ -960,28 +979,25 @@ document.addEventListener("DOMContentLoaded", () => {
       showHomeBoard();
     });
 
-    // 첫 진입: 팀 자동 로드 + 탭 강조
     setActiveTab(homeTabs.team, homeTabs.board, homeTabs.team);
     loadHomeTeam(0);
 
     // 모집 모달 닫기
-	closeRecruitBtn?.addEventListener("click", () => {
-	  recruitModal?.classList.add("hidden");
-	  recruitForm?.reset();
-	  resetFriendSelectionUI(); // ✅
-	});
+    closeRecruitBtn?.addEventListener("click", () => {
+      recruitModal?.classList.add("hidden");
+      recruitForm?.reset();
+      resetFriendSelectionUI();
+    });
 
+    recruitModal?.addEventListener("click", (e) => {
+      if (e.target === recruitModal) {
+        recruitModal.classList.add("hidden");
+        recruitForm?.reset();
+        resetFriendSelectionUI();
+      }
+    });
 
-	recruitModal?.addEventListener("click", (e) => {
-	  if (e.target === recruitModal) {
-	    recruitModal.classList.add("hidden");
-	    recruitForm?.reset();
-	    resetFriendSelectionUI(); // ✅ 추가
-	  }
-	});
-
-
-    // 모집하기 submit (endHours/endMinutes -> endTime(LocalDateTime))
+    // 모집하기 submit
     recruitForm?.addEventListener("submit", async (e) => {
       e.preventDefault();
 
@@ -991,7 +1007,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const formData = new FormData(recruitForm);
-
       const title = (formData.get("title") || "").toString().trim();
       const description = (formData.get("description") || "").toString().trim();
       const totalSpots = Number(formData.get("totalSpots"));
@@ -1001,7 +1016,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!title) return alert("제목을 입력해주세요.");
       if (!description) return alert("내용을 입력해주세요.");
-      if (!Number.isFinite(totalSpots) || totalSpots < 1) return alert("모집 인원을 확인해주세요.");
+      if (!Number.isFinite(totalSpots) || totalSpots < 2) return alert("모집 인원을 확인해주세요. (최소 2명)");
 
       const totalMins = endHours * 60 + endMinutes;
       if (!Number.isFinite(totalMins) || totalMins <= 0) {
@@ -1014,8 +1029,9 @@ document.addEventListener("DOMContentLoaded", () => {
         `${end.getFullYear()}-${pad(end.getMonth() + 1)}-${pad(end.getDate())}` +
         `T${pad(end.getHours())}:${pad(end.getMinutes())}:${pad(end.getSeconds())}`;
 
-		const invitedFriendIds = Array.from(state.selectedFriendIds); // ✅ 추가
-		const payload = { title, description, totalSpots, endTime, invitedFriendIds }; // ✅
+      // ✅ 백 DTO에 맞춤: preApplierid
+      const preApplierid = Array.from(state.selectedFriendIds);
+      const payload = { title, description, totalSpots, endTime, preApplierid };
 
       try {
         await fetchJson(`/recruitments/posts`, {
@@ -1026,6 +1042,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         recruitModal?.classList.add("hidden");
         recruitForm?.reset();
+        resetFriendSelectionUI();
         loadHomeTeam(0);
       } catch (err) {
         console.error(err);
@@ -1033,85 +1050,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-  
-  async function loadFriendPicker() {
-    const picker = $("#friendPicker");
-    const listWrap = $("#friendPickerList");
-    if (!picker || !listWrap) return;
-
-    picker.classList.remove("hidden");
-    listWrap.innerHTML = `<p>불러오는 중...</p>`;
-
-    try {
-      const res = await fetchJson(`/friends/list`);
-      const list = res?.data ?? [];
-
-      if (!Array.isArray(list) || list.length === 0) {
-        listWrap.innerHTML = `<p class="muted">친구가 없습니다.</p>`;
-        return;
-      }
-
-      listWrap.innerHTML = `
-        <div class="card-container">
-          ${list.map(f => {
-            const id = f.id; // ⚠️ 여기 f.id가 "friendshipId"일 수도 있음 (아래 백엔드 설계 참고)
-            const name =
-              Number(f.senderId) === Number(CURRENT_USER_ID)
-                ? escapeHtml(f.receiverName)
-                : escapeHtml(f.senderName);
-
-            const friendUserId =
-              Number(f.senderId) === Number(CURRENT_USER_ID) ? f.receiverId : f.senderId; // ✅ userId 추출
-
-            const disabled = state.selectedFriendIds.has(Number(friendUserId));
-            return `
-              <div class="card open" style="cursor:default;">
-                <div class="ctitle">${name}</div>
-                <div class="card-actions">
-                  <button class="btn-pick-friend" data-user-id="${friendUserId}" data-name="${name}" ${disabled ? "disabled" : ""}>
-                    ${disabled ? "선택됨" : "넣기"}
-                  </button>
-                </div>
-              </div>
-            `;
-          }).join("")}
-        </div>
-      `;
-
-    } catch (e) {
-      console.error(e);
-      listWrap.innerHTML = `<p class="muted">친구 목록을 불러오지 못했습니다.</p>`;
-    }
-  }
-
-  function renderSelectedFriends() {
-    const selected = $("#selectedFriends");
-    if (!selected) return;
-
-    const ids = Array.from(state.selectedFriendIds);
-    if (ids.length === 0) {
-      selected.innerHTML = `<p class="muted">선택된 친구 없음</p>`;
-      return;
-    }
-
-    selected.innerHTML = `
-      <div style="display:flex; gap:6px; flex-wrap:wrap;">
-        ${ids.map(id => {
-          const name = state.selectedFriendNames.get(Number(id)) || `ID:${id}`;
-          return `
-            <span style="border:1px solid #ddd; padding:4px 8px; border-radius:999px;">
-              ${escapeHtml(name)}
-              <button type="button" class="btn-remove-picked" data-user-id="${id}" style="margin-left:6px;">x</button>
-            </span>
-          `;
-        }).join("")}
-      </div>
-    `;
-  }
-
 
   // -------------------------
-  // MYPAGE: 내가쓴글 + 친구
+  // MYPAGE
   // -------------------------
   async function loadMyPosts(page = state.my.page) {
     state.view = "myPosts";
@@ -1144,26 +1085,16 @@ document.addEventListener("DOMContentLoaded", () => {
       ${renderPagination(body.data)}
     `;
 
-    $("#prevPageBtn")?.addEventListener("click", () => { if (!body.data.first) loadMyPosts(state.my.page - 1); });
-    $("#nextPageBtn")?.addEventListener("click", () => { if (!body.data.last) loadMyPosts(state.my.page + 1); });
+    $("#prevPageBtn")?.addEventListener("click", () => {
+      if (!body.data.first) loadMyPosts(state.my.page - 1);
+    });
+    $("#nextPageBtn")?.addEventListener("click", () => {
+      if (!body.data.last) loadMyPosts(state.my.page + 1);
+    });
 
     startCountdown();
   }
 
-  function resetFriendSelectionUI() {
-    // ✅ 재할당 X, 기존 객체 비우기
-    state.selectedFriendIds.clear();
-    state.selectedFriendNames.clear();
-
-    const selected = $("#selectedFriends");
-    if (selected) selected.innerHTML = `<p class="muted">선택된 친구 없음</p>`;
-
-    const picker = $("#friendPicker");
-    if (picker) picker.classList.add("hidden");
-  }
-
-
-  
   async function loadMyApplied(page = state.applied.page) {
     state.view = "myApplied";
     if (CURRENT_USER_ID === null) {
@@ -1172,10 +1103,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     setLoading();
-    // ✅ 네 컨트롤러 매핑 그대로 사용 (대소문자 주의!)
-    const body = await fetchJson(`/recruitments/apply/my/ApplyList?page=${page}&size=${state.applied.size}`);
+    const body = await fetchJson(
+      `/recruitments/apply/my/ApplyList?page=${page}&size=${state.applied.size}`
+    );
 
-    // 응답 타입이 Page로 오면 아래 그대로, 아니면 body.data 형태에 맞게 조정해야 함
     if (!body?.success || !body.data || !Array.isArray(body.data.content)) {
       setError("응답 형식이 올바르지 않습니다.");
       return;
@@ -1197,34 +1128,122 @@ document.addEventListener("DOMContentLoaded", () => {
       ${renderPagination(body.data)}
     `;
 
-    $("#prevPageBtn")?.addEventListener("click", () => { if (!body.data.first) loadMyApplied(state.applied.page - 1); });
-    $("#nextPageBtn")?.addEventListener("click", () => { if (!body.data.last) loadMyApplied(state.applied.page + 1); });
+    $("#prevPageBtn")?.addEventListener("click", () => {
+      if (!body.data.first) loadMyApplied(state.applied.page - 1);
+    });
+    $("#nextPageBtn")?.addEventListener("click", () => {
+      if (!body.data.last) loadMyApplied(state.applied.page + 1);
+    });
 
     startCountdown();
   }
 
-  function setActive3(a, b, c, active) {
-    [a, b, c].forEach(el => {
-      if (!el) return;
-      el.classList.add("tab-btn");
-      el.classList.toggle("active-tab", el === active);
+  function initMyPage() {
+    const teamTab = $("#teamTab");
+    const friendsTab = $("#friendsTab");
+
+    const subWrap = $("#teamSubTabs");
+    const myPostsTab = $("#myPostsTab");
+    const myAppliedTab = $("#myAppliedTab");
+
+    const friendsSubTabs = $("#friendsSubTabs");
+    const friendFindTab = $("#friendFindTab");
+    const friendRequestsTab = $("#friendRequestsTab");
+    const friendListTab = $("#friendListTab");
+
+    teamTab?.addEventListener("click", () => {
+      setActiveTab(teamTab, friendsTab, teamTab);
+      if (subWrap) subWrap.style.display = "flex";
+      if (friendsSubTabs) friendsSubTabs.style.display = "none";
+
+      setActiveTab(myPostsTab, myAppliedTab, myPostsTab);
+      loadMyPosts(0);
     });
+
+    friendsTab?.addEventListener("click", () => {
+      setActiveTab(teamTab, friendsTab, friendsTab);
+      if (subWrap) subWrap.style.display = "none";
+      if (friendsSubTabs) friendsSubTabs.style.display = "flex";
+
+      [friendFindTab, friendRequestsTab, friendListTab].forEach((el) =>
+        el?.classList.remove("active-tab")
+      );
+      friendFindTab?.classList.add("active-tab");
+      loadFriendFind();
+    });
+
+    friendFindTab?.addEventListener("click", () => {
+      setActive3(friendFindTab, friendRequestsTab, friendListTab, friendFindTab);
+      loadFriendFind();
+    });
+
+    friendRequestsTab?.addEventListener("click", () => {
+      setActive3(friendFindTab, friendRequestsTab, friendListTab, friendRequestsTab);
+      loadFriendRequests();
+    });
+
+    friendListTab?.addEventListener("click", () => {
+      setActive3(friendFindTab, friendRequestsTab, friendListTab, friendListTab);
+      loadFriendList();
+    });
+
+    myPostsTab?.addEventListener("click", () => {
+      setActiveTab(myPostsTab, myAppliedTab, myPostsTab);
+      loadMyPosts(0);
+    });
+
+    myAppliedTab?.addEventListener("click", () => {
+      setActiveTab(myPostsTab, myAppliedTab, myAppliedTab);
+      loadMyApplied(0);
+    });
+
+    // 첫 진입
+    setActiveTab(teamTab, friendsTab, teamTab);
+    if (subWrap) subWrap.style.display = "flex";
+    setActiveTab(myPostsTab, myAppliedTab, myPostsTab);
+    loadMyPosts(0);
   }
 
-
-  function loadFriends() {
-    contentArea.innerHTML = `<h2>친구</h2><p>여기에 친구 기능 UI를 넣을 예정입니다.</p>`;
+  // -------------------------
+  // Refresh current list
+  // -------------------------
+  function refreshCurrentList() {
+    if (state.view === "homeTeam") loadHomeTeam(state.home.page);
+    else if (state.view === "myPosts") loadMyPosts(state.my.page);
+    else if (state.view === "myApplied") loadMyApplied(state.applied.page);
+    else if (state.view === "friendsFind") loadFriendFind();
+    else if (state.view === "friendsRequests") loadFriendRequests();
+    else if (state.view === "friendsList") loadFriendList();
   }
 
   // -------------------------
   // GLOBAL EVENT DELEGATION
-  // - dynamic render 대응
   // -------------------------
-  // 카드 클릭 -> 상세 열기
+  // 신청 버튼 (카드/상세 공용)
+  contentArea?.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".btn-apply");
+    if (!btn) return;
+
+    e.stopPropagation();
+    const id = btn.dataset.id;
+    if (!id) return;
+
+    if (!confirm("이 모집에 신청하시겠습니까?")) return;
+
+    try {
+      await applyRecruit(id);
+      refreshCurrentList();
+      alert("신청이 완료되었습니다!");
+    } catch (err) {
+      console.error(err);
+      alert("신청에 실패했습니다. (정원 초과/중복 신청/로그인 필요 여부 확인)");
+    }
+  });
+
+  // 카드 클릭 -> 상세
   contentArea?.addEventListener("click", (e) => {
     const target = e.target;
 
-    // 마감 버튼 클릭이면 카드 클릭으로 안 넘어가게
     if (target.classList.contains("btn-complete")) return;
 
     const card = target.closest(".card");
@@ -1236,13 +1255,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // 리스트 카드의 "마감" 버튼 (이벤트 위임)
+  // 카드의 마감 버튼
   contentArea?.addEventListener("click", async (e) => {
     const btn = e.target.closest(".btn-complete");
     if (!btn) return;
 
     e.stopPropagation();
-
     const id = btn.dataset.id;
     if (!id) return;
 
@@ -1256,10 +1274,14 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("마감 처리 중 오류가 발생했습니다.");
     }
   });
+
   console.log("CURRENT_USER_ID =", CURRENT_USER_ID);
+  if (typeof CURRENT_USER_NAME !== "undefined") {
+    console.log("CURRENT_USER_NAME =", CURRENT_USER_NAME);
+  }
 
   // -------------------------
-  // Init by page
+  // Init
   // -------------------------
   if (isHome) initHome();
   if (isMyPage) initMyPage();

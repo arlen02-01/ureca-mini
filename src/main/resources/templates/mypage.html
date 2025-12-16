@@ -3,22 +3,25 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- CSRF (JS fetch에서 사용) -->
   <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
   <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
 
   <title>마이페이지</title>
 
-  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" th:href="@{/css/style.css}" />
 
   <script>
     var CURRENT_USER_ID = null;
+    var CURRENT_USER_NAME = null;
   </script>
   <script th:inline="javascript" sec:authorize="isAuthenticated()">
   /*<![CDATA[*/
     CURRENT_USER_ID = /*[[${#authentication.principal.id}]]*/ null;
+    CURRENT_USER_NAME = /*[[${#authentication.name}]]*/ null;
   /*]]>*/
   </script>
 
@@ -27,51 +30,54 @@
 
 <body class="bdy">
 <div class="content">
+	
+	<nav class="nav">
+	  <div class="logo">ㄸ</div>
+	
+	  <a class="title" href="/">또간집</a>
+	
+	  <div class="auth">
+	    <span sec:authorize="isAuthenticated()">
+	      <div class="welcome">
+	        <span sec:authentication="name"></span>님 환영합니다!
+	      </div>
+	      <div class="auth-buttons">
+	        <a href="/mypage" class="authBox">마이페이지</a>
+	        <a href="/auth/logout" class="authBox">로그아웃</a>
+	      </div>
+	    </span>
+	
+	    <span sec:authorize="isAnonymous()">
+	      <div class="auth-buttons">
+	        <a href="/auth/login" class="authBox">로그인</a>
+	        <a href="/auth/signup" class="authBox">회원가입</a>
+	      </div>
+	    </span>
+	  </div>
+	</nav>
 
-  <nav class="nav">
-    <div class="logo">logo</div>
-    <a class="title" href="/">또간집</a>
-
-    <div class="auth">
-      <span sec:authorize="isAuthenticated()">
-        <div class="welcome"><span sec:authentication="name"></span>님 환영합니다!</div>
-        <div class="auth-buttons">
-          <a href="/mypage" class="authBox">마이페이지</a>
-          <a href="/auth/logout" class="authBox">로그아웃</a>
-        </div>
-      </span>
-
-      <span sec:authorize="isAnonymous()">
-        <div class="auth-buttons">
-          <a href="/auth/login" class="authBox">로그인</a>
-          <a href="/auth/signup" class="authBox">회원가입</a>
-        </div>
-      </span>
-    </div>
-  </nav>
-
-  <!-- ✅ 상단 탭: 팀 / 친구 -->
+  <!-- 상단 탭 -->
   <div class="contentsBar">
     <div id="teamTab" class="tab-btn">팀</div>
     <div id="friendsTab" class="tab-btn">친구</div>
   </div>
 
-  <!-- ✅ 팀 활성 시만 보이는 하위 탭 -->
+  <!-- 팀 하위탭 -->
   <div id="teamSubTabs" class="contentsBar" style="display:none;">
     <div id="myPostsTab" class="tab-btn">내가 쓴 글</div>
     <div id="myAppliedTab" class="tab-btn">내가 신청한 글</div>
   </div>
 
-  <div id="contentArea"></div>
-  
-  <!-- ✅ 친구 활성 시만 보이는 하위 탭 -->
+  <!-- 친구 하위탭 -->
   <div id="friendsSubTabs" class="contentsBar" style="display:none;">
     <div id="friendFindTab" class="tab-btn">친구 찾기</div>
     <div id="friendRequestsTab" class="tab-btn">받은 요청</div>
     <div id="friendListTab" class="tab-btn">내 친구</div>
   </div>
 
-  <!-- ✅ 상세 모달 -->
+  <div id="contentArea"></div>
+
+  <!-- 상세 모달 -->
   <div id="detailModal" class="modal hidden">
     <div class="modal-content">
       <h3 id="detailTitle">상세</h3>
@@ -90,11 +96,10 @@
       <div class="meta"><b>내용</b></div>
       <pre id="detailDesc" style="white-space:pre-wrap;"></pre>
 
-      <div class="meta"><b>신청자</b></div>
+      <div class="meta"><b>팀원</b></div>
       <div id="detailApps"></div>
 
       <div class="form-actions">
-        <!-- 홈에서만 쓸 거면 두고, 마이페이지에서는 JS로 숨김 -->
         <button type="button" id="detailApplyBtn" class="btn-apply" style="display:none;">신청하기</button>
         <button type="button" id="detailCompleteBtn" data-id="">마감</button>
         <button type="button" id="detailCloseBtn">닫기</button>
