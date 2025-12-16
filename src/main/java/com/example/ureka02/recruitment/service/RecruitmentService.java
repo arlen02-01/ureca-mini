@@ -12,7 +12,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import com.example.ureka02.global.error.CommonException;
 import com.example.ureka02.global.error.ErrorCode;
 import com.example.ureka02.recruitment.Enum.RecruitApplyStatus;
@@ -38,6 +37,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class RecruitmentService {
+
+    private final SettlementService settlementService;
     private final RecruitRepository recruitmentRepository;
     private final UserRepository userRepository;
     private final RecruitApplyRepository recruitApplyRepository;
@@ -184,8 +185,6 @@ public class RecruitmentService {
         recruitment.complete();
         recruitmentRepository.save(recruitment);
 
-        // 정산 자동 생성
-        settlementService.createSettlementAuto(recruitment, totalAmount);
     }
 
 }
