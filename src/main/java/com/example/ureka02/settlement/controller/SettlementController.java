@@ -1,61 +1,53 @@
 package com.example.ureka02.settlement.controller;
 
+import com.example.ureka02.recruitment.entity.RecruitmentMember;
+import com.example.ureka02.recruitment.Enum.RecruitMemberRole;
+import com.example.ureka02.recruitment.repository.RecruitMemberRepository;
 import com.example.ureka02.settlement.entity.Settlement;
 import com.example.ureka02.settlement.service.SettlementService;
+import com.example.ureka02.user.customUserDetails.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/settlements")
 @RequiredArgsConstructor
-@Slf4j
+@RequestMapping("/api/settlements")
 public class SettlementController {
 
     private final SettlementService settlementService;
+    private final RecruitMemberRepository recruitMemberRepository;
 
-    /**
-     * 정산 시작 (팀장이 정산하기 버튼 클릭)
-     * POST /api/settlements/{settlementId}/start
-     */
-    @PostMapping("/{settlementId}/start")
-    public ResponseEntity<?> startSettlement(@PathVariable Long settlementId) {
-        log.info("정산 시작 요청 - settlementId: {}", settlementId);
+    @PostMapping("/recruitments/{recruitmentId}/start")
+    public ResponseEntity<Long> startSettlement(
+            @PathVariable Long recruitmentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        // 1️⃣ 모집 멤버 전체 조회
+        List<RecruitmentMember> members =
+                recruitMemberRepository.findByRecruitmentId(recruitmentId);
 
-        settlementService.startSettlement(settlementId);
+        // 2️⃣ 방장(admin) 찾기
+        RecruitmentMember admin = members.stream()
+                .filter(m -> m.getRole() == RecruitMemberRole.ADMIN)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("방장이 존재하지 않습니다."));
 
-        Settlement settlement = settlementService.getSettlement(settlementId);
+        // 3️⃣ 요청자가 방장인지 검증
+        if (!admin.getMember().getId().equals(userDetails.getId())) {
+            throw new IllegalStateException("방장만 정산을 시작할 수 있습니다.");
+        }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "정산이 시작되었습니다.");
-        response.put("settlementId", settlementId);
-        response.put("status", settlement.getStatus());
-        response.put("payments", settlement.getPayments());
+        // 4️⃣ 총 금액 (임시값, 필요 시 RequestBody로 변경)
+        Long totalAmount = 60000L;
 
-        return ResponseEntity.ok(response);
-    }
+        // 5️⃣ 정산 생성
+        Settlement settlement =
+                settlementService.createSettlement(admin, totalAmount);
 
-    /**
-     * 정산 조회
-     * GET /api/settlements/{settlementId}
-     */
-    @GetMapping("/{settlementId}")
-    public ResponseEntity<Settlement> getSettlement(@PathVariable Long settlementId) {
-        Settlement settlement = settlementService.getSettlement(settlementId);
-        return ResponseEntity.ok(settlement);
-    }
-
-    /**
-     * 모집글별 정산 조회
-     * GET /api/settlements/recruitment/{recruitmentId}
-     */
-    @GetMapping("/recruitment/{recruitmentId}")
-    public ResponseEntity<Settlement> getSettlementByRecruitment(@PathVariable Long recruitmentId) {
-        Settlement settlement = settlementService.getSettlementByRecruitment(recruitmentId);
-        return ResponseEntity.ok(settlement);
+        return ResponseEntity.ok(settlement.getId());
     }
 }

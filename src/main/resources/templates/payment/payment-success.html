@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>결제 완료</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f6f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .success-box {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .success {
+            color: #2ecc71;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+        .info {
+            margin-bottom: 8px;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: white;
+            background-color: #3182f6;
+            padding: 10px 16px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="success-box">
+    <div class="success">결제가 완료되었습니다 🎉</div>
+
+    <div class="info"><strong>결제자:</strong> 김원기</div>
+    <div class="info"><strong>결제 금액:</strong> 15,000원</div>
+    <div class="info"><strong>결제 상태:</strong> 성공</div>
+
+    <a href="/settlements/complete">정산 완료 확인</a>
+</div>
+
+</body>
+</html>

@@ -12,7 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 import com.example.ureka02.global.error.CommonException;
 import com.example.ureka02.global.error.ErrorCode;
 import com.example.ureka02.recruitment.Enum.RecruitApplyStatus;
@@ -177,15 +177,5 @@ public class RecruitmentService {
                 .build();
     }
 
-
-    @Transactional
-    public void completeRecruitment(Long recruitmentId, Integer totalAmount) {
-        Recruitment recruitment = recruitmentRepository.findById(recruitmentId).orElseThrow();
-        recruitment.complete();
-        recruitmentRepository.save(recruitment);
-
-        // 정산 자동 생성
-        settlementService.createSettlementAuto(recruitment, totalAmount);
-    }
 
 }
