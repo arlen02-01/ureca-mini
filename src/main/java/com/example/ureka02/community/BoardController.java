@@ -5,11 +5,14 @@ import com.example.ureka02.community.dto.BoardResponse;
 import com.example.ureka02.global.common.ResponseDto;
 import com.example.ureka02.user.customUserDetails.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,11 +27,18 @@ public class BoardController {
     @Operation(summary = "게시글 작성")
     public ResponseDto<BoardResponse> createBoard(
         @AuthenticationPrincipal CustomUserDetails user,
-        BoardRequest boardRequest
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            required = true,
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = BoardRequest.class)
+            )
+        )
+        @RequestBody BoardRequest boardRequest
     ) {
-        log.info("[BoardController] createBoard 진입");
-        return ResponseDto.ok(boardService.createBoard(user.getId(),user.getUsername(), boardRequest));
-
+        return ResponseDto.ok(
+            boardService.createBoard(user.getId(), user.getUsername(), boardRequest)
+        );
     }
 
     @PostMapping("/update/{boardId}")
