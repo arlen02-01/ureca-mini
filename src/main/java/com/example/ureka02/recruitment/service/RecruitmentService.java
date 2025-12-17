@@ -5,13 +5,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.example.ureka02.settlement.service.SettlementService;
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.ureka02.global.error.CommonException;
 import com.example.ureka02.global.error.ErrorCode;
@@ -38,6 +38,8 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class RecruitmentService {
+
+    private final SettlementService settlementService;
     private final RecruitRepository recruitmentRepository;
     private final UserRepository userRepository;
     private final RecruitApplyRepository recruitApplyRepository;
@@ -155,6 +157,7 @@ public class RecruitmentService {
             RecruitApplicationsResponse dto = RecruitApplicationsResponse.builder()
                     .userId(user.getId())
                     .name(user.getName())
+                    .appliedAt(apply.getAppliedAt())
                     .order(i + 1) // 1번째, 2번째, 3번째...
                     .build();
 
@@ -176,6 +179,5 @@ public class RecruitmentService {
                 .createdAt(recruitment.getCreatedAt())
                 .build();
     }
-
 
 }

@@ -63,7 +63,8 @@ public class RecruitController {
     // 모집 완료
     @PostMapping("/{recruitId}/complete")
     @Operation(summary = "모집 완료 상태로 변경", description = "모집글의 상태를 COMPLETED 로 변경하고 멤버를 생성합니다.")
-    public ResponseEntity<ResponseDto<RecruitCompletedResponse>> completeRecruitment(@PathVariable("recruitId") Long recruitId,
+    public ResponseEntity<ResponseDto<RecruitCompletedResponse>> completeRecruitment(
+            @PathVariable("recruitId") Long recruitId,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
         Long creatorId = principal.getId();
@@ -76,7 +77,8 @@ public class RecruitController {
     // 모집글 상세 조회
     @GetMapping("/{recruitId}")
     @Operation(summary = "모집글 상세 조회", description = "postId를 기반으로 특정 모집글 내용을 조회합니다.")
-    public ResponseEntity<ResponseDto<RecruitDetailResponse>> getRecruitDetail(@PathVariable("recruitId") Long recruitId) {
+    public ResponseEntity<ResponseDto<RecruitDetailResponse>> getRecruitDetail(
+            @PathVariable("recruitId") Long recruitId) {
         RecruitDetailResponse response = recruitmentService.getRecruitDetails(recruitId);
 
         return ResponseEntity.ok(ResponseDto.ok(response));

@@ -56,12 +56,14 @@ public class Recruitment {
         }
     }
 
-    public void increaseCurrentSpots() { // 신청
-        this.currentSpots++;
-        if (this.currentSpots >= this.totalSpots) {
-            close();
-        }
-    }
+    /*
+     * public void increaseCurrentSpots() { // 신청
+     * this.currentSpots++;
+     * if (this.currentSpots >= this.totalSpots) {
+     * close();
+     * }
+     * }
+     */
 
     public void decrementCurrentSpots() { // 취소
         if (this.currentSpots > 0) {

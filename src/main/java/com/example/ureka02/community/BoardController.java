@@ -5,15 +5,16 @@ import com.example.ureka02.community.dto.BoardResponse;
 import com.example.ureka02.global.common.ResponseDto;
 import com.example.ureka02.user.customUserDetails.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/board")
 public class BoardController {
     private final BoardService boardService;
@@ -22,10 +23,11 @@ public class BoardController {
     @Operation(summary = "게시글 작성")
     public ResponseDto<BoardResponse> createBoard(
         @AuthenticationPrincipal CustomUserDetails user,
-        BoardRequest boardRequest
+        @RequestBody BoardRequest boardRequest
     ) {
-        return ResponseDto.ok(boardService.createBoard(user.getId(),user.getUsername(), boardRequest));
-
+        return ResponseDto.ok(
+            boardService.createBoard(user.getId(), user.getUsername(), boardRequest)
+        );
     }
 
     @PostMapping("/update/{boardId}")
@@ -33,7 +35,7 @@ public class BoardController {
     public ResponseDto<BoardResponse> updateBoard(
         @AuthenticationPrincipal CustomUserDetails user,
         @PathVariable Long boardId,
-        BoardRequest boardRequest
+        @RequestBody BoardRequest boardRequest
         ){
         return ResponseDto.ok(boardService.updateBoard(boardId,user.getId(), boardRequest));
     }

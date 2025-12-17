@@ -24,6 +24,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -39,7 +40,7 @@ public class RecruitApplyController {
     @PostMapping("/{recruitmentId}")
     @Operation(summary = "선착순 모집글 신청", description = "사용자는 특정 모집글에 신청할 수 있습니다.")
     public ResponseEntity<ResponseDto<RecruitApplyResponse>> applyRecruitment(
-    		@PathVariable("recruitmentId") Long recruitmentId,
+            @PathVariable("recruitmentId") Long recruitmentId,
             @AuthenticationPrincipal CustomUserDetails principal) {
 
         Long applierId = principal.getId();

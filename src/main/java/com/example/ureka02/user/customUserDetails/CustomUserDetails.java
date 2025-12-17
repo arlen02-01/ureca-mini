@@ -30,9 +30,8 @@ public class CustomUserDetails implements UserDetails{
     
     @Override
     public String getUsername() {
-        return user.getEmail();   // 로컬 로그인 시에만 필요
+        return user.getName();   // 로컬 로그인 시에만 필요
     }
-    
     public long getId() {
         return user.getId();   // 로컬 로그인 시에만 필요
     }
