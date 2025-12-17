@@ -6,6 +6,7 @@ import com.example.ureka02.global.common.ResponseDto;
 import com.example.ureka02.user.customUserDetails.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/board")
 public class BoardController {
     private final BoardService boardService;
@@ -24,6 +26,7 @@ public class BoardController {
         @AuthenticationPrincipal CustomUserDetails user,
         BoardRequest boardRequest
     ) {
+        log.info("[BoardController] createBoard 진입");
         return ResponseDto.ok(boardService.createBoard(user.getId(),user.getUsername(), boardRequest));
 
     }

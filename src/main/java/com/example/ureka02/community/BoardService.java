@@ -5,24 +5,32 @@ import com.example.ureka02.community.dto.BoardRequest;
 import com.example.ureka02.community.dto.BoardResponse;
 import com.example.ureka02.user.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BoardService {
     private final BoardRepository boardRepository;
 
     @Transactional
     public BoardResponse createBoard(Long userId,String username, BoardRequest request) {
+        log.info("[BoardService.createBoard] 요청 시작 - userId={}, username={}, title={}",
+            userId, username, request.getTitle());
+
         Board board = Board.builder()
             .userId(userId)
             .username(username)
             .title(request.getTitle())
             .content(request.getContent())
             .build();
+        log.info("[BoardService.createBoard] Board 엔티티 생성 완료 - board={}", board);
 
         Board savedBoard = boardRepository.save(board);
+        log.info("[BoardService.createBoard] 게시글 저장 완료 - boardId={}, userId={}",
+            savedBoard.getId(), savedBoard.getUserId());
 
         return BoardResponse.from(savedBoard);
     }
