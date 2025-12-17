@@ -1228,23 +1228,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  contentArea?.addEventListener("click", async (e) => {
-    const btn = e.target.closest(".btn-complete");
-    if (!btn) return;
+  contentArea?.addEventListener("click", (e) => {
+    // 마감 버튼 클릭이면 카드 클릭으로 처리하지 않기
+    if (e.target.closest(".btn-complete")) return;
+    if (e.target.closest(".btn-apply")) return; // (선택) 신청 버튼도 카드 클릭 막기
 
-    e.stopPropagation();
-    const id = btn.dataset.id;
-    if (!id) return;
+    const card = e.target.closest(".recruit-card"); // ✅ 핵심 수정
+    if (!card?.dataset?.id) return;
 
-    if (!confirm("이 모집을 마감하시겠습니까?")) return;
-
-    try {
-      await completeRecruit(id);
-      refreshCurrentList();
-    } catch (err) {
+    openDetailModal(card.dataset.id).catch((err) => {
       console.error(err);
-      alert("마감 처리 중 오류가 발생했습니다.");
-    }
+      alert("상세 정보를 불러오지 못했습니다.");
+    });
   });
 
   console.log("CURRENT_USER_ID =", CURRENT_USER_ID);
