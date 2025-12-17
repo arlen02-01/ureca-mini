@@ -152,6 +152,7 @@ public class RecruitmentService {
             RecruitApplicationsResponse dto = RecruitApplicationsResponse.builder()
                     .userId(user.getId())
                     .name(user.getName())
+                    .appliedAt(apply.getAppliedAt())
                     .order(i + 1) // 1번째, 2번째, 3번째...
                     .build();
 

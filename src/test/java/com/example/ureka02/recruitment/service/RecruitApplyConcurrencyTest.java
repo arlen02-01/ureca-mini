@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
@@ -26,8 +25,11 @@ import com.example.ureka02.user.UserRepository;
 import com.example.ureka02.user.enums.AuthProvider;
 import com.example.ureka02.user.enums.Role;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @SpringBootTest
-public class RecruitApplyConcurrencyTest {
+class RecruitApplyConcurrencyTest {
     @Autowired
     RecruitApplyService recruitApplyService;
     @Autowired
@@ -63,6 +65,7 @@ public class RecruitApplyConcurrencyTest {
 
         List<User> users = new ArrayList<>();
         long base = System.nanoTime();
+
         for (int i = 0; i < threads; i++) {
             users.add(userRepository.save(User.builder()
                     .provider(AuthProvider.LOCAL)
@@ -128,6 +131,18 @@ public class RecruitApplyConcurrencyTest {
 
         Recruitment refreshed = recruitRepository.findById(recruitment.getId()).orElseThrow();
         assertThat(refreshed.getCurrentSpots()).isEqualTo(totalSpots);
+
+        log.error("=====================================");
+        log.error("✅ 동시성 테스트 성공 결과");
+        log.error("총 시도 스레드 수: {}", threads);
+        log.error("총 정원 (기대값): {}", totalSpots);
+        log.error("-------------------------------------");
+        log.error("최종 성공 카운트 (success): {}", success.get());
+        log.error("정원 초과 실패 (fullFail): {}", fullFail.get());
+        log.error("기타 실패 (otherFail): {}", otherFail.get());
+        log.error("DB 최종 현재 정원 (dbCurrentSpots): {}", refreshed.getCurrentSpots());
+        log.error("=====================================");
+
     }
 
 }

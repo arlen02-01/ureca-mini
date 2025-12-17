@@ -33,6 +33,12 @@ import lombok.RequiredArgsConstructor;
 // 사용자가 모집글에 신청할 때, Redis를 사용하여 인원 수를 체크하고,
 // Redisson으로 중복 신청 방지를 처리 -> 분산락은 추후 구현
 
+/*
+Redis INCR는 안전하지만,
+DB에서 currentSpots++를 락/버전 없이 처리해서
+여러 트랜잭션이 서로 덮어써 Lost Update가 발생했음. -> JPQL 쿼리로 DB 원자적 저장 보장
+*/
+
 @Service
 @RequiredArgsConstructor
 public class RecruitApplyService {
@@ -57,7 +63,8 @@ public class RecruitApplyService {
 
     @Transactional
     public RecruitApplyResponse applyRecruitment(Long recruitmentId, Long userId) {
-        // 1. Redis 로 원자적 동시성 제어
+        // 1. Redis 로 원자적 동시성 제어(선착순 안에 들기 - 자리 확보)
+
         // 특정 모집글에 대한 Redis 키 생성
         String countKey = RECRUIT_COUNT_KEY_PREFIX + recruitmentId;
         // INCR 명령어를 실행 - 원자적 증가 가능
@@ -91,7 +98,15 @@ public class RecruitApplyService {
             }
 
             // 6. Recruitment 엔티티에 인원수 증가 (도메인 메서드)
-            recruitment.increaseCurrentSpots();
+            // recruitment.increaseCurrentSpots();
+            int updatedRows = recruitRepository.incrementCurrentSpotsAtomic(recruitmentId);
+
+            if (updatedRows == 0) {
+                // 이 경우는 Redis는 통과했지만, DB 쿼리의 WHERE 조건(currentSpots < totalSpots)에 막힌 것.
+                // 즉, 다른 트랜잭션들이 먼저 커밋하여 정원이 꽉 찬 상황.
+                throw new CommonException(ErrorCode.RECRUITMENT_FULL);
+            }
+            // 업데이트 성공 시 updatedRows == 1
 
             // 7. 신청 정보 저장
             RecruitmentApply recruitmentApply = RecruitmentApply.builder()
@@ -101,6 +116,7 @@ public class RecruitApplyService {
 
             RecruitmentApply savedApply = recruitApplyRepository.save(recruitmentApply);
 
+            // 트랜잭션이 성공적으로 커밋되면 (신청 기록 저장 + 인원수 DB 반영 완료)
             return toApplyResponse(savedApply);
 
         } catch (CommonException e) {

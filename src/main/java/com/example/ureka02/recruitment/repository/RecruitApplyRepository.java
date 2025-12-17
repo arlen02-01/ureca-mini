@@ -25,6 +25,7 @@ public interface RecruitApplyRepository extends JpaRepository<RecruitmentApply, 
             Long recruitmentId,
             RecruitApplyStatus status);
 
-    // 신청 취소 로직
+    // [동시성 통합 테스트를 위한 검증] 특정 모집글에 해당하는 신청 기록의 개수를 카운트
+    long countByRecruitmentId(Long recruitmentId);
 
 }
