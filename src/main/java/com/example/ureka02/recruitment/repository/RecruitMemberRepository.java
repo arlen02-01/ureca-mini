@@ -9,7 +9,4 @@ import com.example.ureka02.recruitment.entity.RecruitmentMember;
 public interface RecruitMemberRepository extends JpaRepository<RecruitmentMember, Long> {
     List<RecruitmentMember> findByRecruitmentId(Long recruitmentId);
 
-    // 경윤 추가
-    List<RecruitmentMember> findByRecruitment(Recruitment recruitment);
-
 }

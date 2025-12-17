@@ -171,8 +171,8 @@
 <script th:inline="javascript">
     /*<![CDATA[*/
     const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code") || "UNKNOWN_ERROR";
-    const message = urlParams.get("message") || "알 수 없는 오류가 발생했습니다.";
+    const code = urlParams.get("code") || "REJECT_ACCOUNT_PAYMENT";
+    const message = urlParams.get("message") || "잔액부족으로 결제에 실패했습니다.";
 
     console.error("결제 실패:", { code, message });
 
