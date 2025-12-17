@@ -5,6 +5,8 @@ import com.example.ureka02.community.dto.BoardResponse;
 import com.example.ureka02.global.common.ResponseDto;
 import com.example.ureka02.user.customUserDetails.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,9 +25,9 @@ public class BoardController {
         @AuthenticationPrincipal CustomUserDetails user,
         @RequestBody BoardRequest boardRequest
     ) {
-        log.info("[BoardController] createBoard 진입");
-        return ResponseDto.ok(boardService.createBoard(user.getId(),user.getUsername(), boardRequest));
-
+        return ResponseDto.ok(
+            boardService.createBoard(user.getId(), user.getUsername(), boardRequest)
+        );
     }
 
     @PostMapping("/update/{boardId}")
