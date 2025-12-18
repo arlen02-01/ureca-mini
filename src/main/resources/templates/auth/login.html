@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로그인</title>
+
+  <link rel="stylesheet" th:href="@{/css/style.css}" />
+
+  <script>
+    var CURRENT_USER_ID = null;
+    var CURRENT_USER_NAME = null;
+  </script>
+  <script th:inline="javascript" sec:authorize="isAuthenticated()">
+  /*<![CDATA[*/
+    CURRENT_USER_ID = /*[[${#authentication.principal.id}]]*/ null;
+    CURRENT_USER_NAME = /*[[${#authentication.name}]]*/ null;
+  /*]]>*/
+  </script>
+</head>
+
+<body class="bdy">
+<div class="content">
+
+	<nav class="nav">
+	  <div class="logo">ㄸ</div>
+	
+	  <a class="title" href="/">또간집</a>
+	
+	  <div class="auth">
+	    <span sec:authorize="isAuthenticated()">
+	      <div class="welcome">
+	        <span sec:authentication="name"></span>님 환영합니다!
+	      </div>
+	      <div class="auth-buttons">
+	        <a href="/mypage" class="authBox">마이페이지</a>
+	        <a href="/auth/logout" class="authBox">로그아웃</a>
+	      </div>
+	    </span>
+	
+	    <span sec:authorize="isAnonymous()">
+	      <div class="auth-buttons">
+	        <a href="/auth/login" class="authBox">로그인</a>
+	        <a href="/auth/signup" class="authBox">회원가입</a>
+	      </div>
+	    </span>
+	  </div>
+	</nav>
+
+
+  <div id="contentArea">
+    <div class="list-header">
+      <h2>로그인</h2>
+    </div>
+
+    <div class="card open" style="cursor:default;">
+      <form action="/auth/login/local" method="POST">
+        <div class="form-row">
+          <label for="email">아이디(email)</label>
+          <input type="text" id="email" name="email" autocomplete="username" required />
+        </div>
+
+        <div class="form-row">
+          <label for="password">비밀번호</label>
+          <input type="password" id="password" name="password" autocomplete="current-password" required />
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="page-btn">로그인</button>
+          <a href="/auth/signup" class="authBox">회원가입</a>
+        </div>
+
+        <div style="margin-top:12px; display:flex; justify-content:flex-end;">
+          <a href="/oauth2/authorization/kakao" class="page-btn" style="border-color: rgba(255,204,102,0.45);">
+            카카오로 로그인
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

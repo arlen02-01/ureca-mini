@@ -16,16 +16,13 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
-@Schema(name="ResponseDto", description = "공통 응답 객체")
+@Schema(description = "공통 응답 객체")
 public record ResponseDto<T>(@JsonIgnore HttpStatus httpStatus,
-                             @Schema(name = "success", description = "API 호출 성공 여부")
-                             @NotNull Boolean success,
-                             @Schema(name = "data", description = "API 호출 성공 시 응답 데이터")
-                             @Nullable T data,
-                             @Schema(name = "error", description = "API 호출 실패 시 응답 에러")
-                             @Nullable ExceptionDto error ){
+        @Schema(name = "success", description = "API 호출 성공 여부") @NotNull Boolean success,
+        @Schema(name = "data", description = "API 호출 성공 시 응답 데이터") @Nullable T data,
+        @Schema(name = "error", description = "API 호출 실패 시 응답 에러") @Nullable ExceptionDto error) {
 
-    public static <T> ResponseDto<T> ok(@Nullable final T data){
+    public static <T> ResponseDto<T> ok(@Nullable final T data) {
         return new ResponseDto<>(HttpStatus.OK, true, data, null);
     }
 
@@ -38,16 +35,17 @@ public record ResponseDto<T>(@JsonIgnore HttpStatus httpStatus,
     }
 
     public static ResponseDto<Object> fail(final MissingServletRequestParameterException e) {
-        return new ResponseDto<>(HttpStatus.BAD_REQUEST, false, null, ExceptionDto.of(ErrorCode.MISSING_REQUEST_PARAMETER));
+        return new ResponseDto<>(HttpStatus.BAD_REQUEST, false, null,
+                ExceptionDto.of(ErrorCode.MISSING_REQUEST_PARAMETER));
     }
 
     public static ResponseDto<Object> fail(final MethodArgumentTypeMismatchException e) {
-        return new ResponseDto<>(HttpStatus.BAD_REQUEST, false, null, ExceptionDto.of(ErrorCode.INVALID_PARAMETER_FORMAT));
+        return new ResponseDto<>(HttpStatus.BAD_REQUEST, false, null,
+                ExceptionDto.of(ErrorCode.INVALID_PARAMETER_FORMAT));
     }
 
-    public static ResponseDto<Object> fail(final CommonException e){
+    public static ResponseDto<Object> fail(final CommonException e) {
         return new ResponseDto<>(HttpStatus.BAD_REQUEST, false, null, ExceptionDto.of(e.getErrorCode()));
     }
-
 
 }

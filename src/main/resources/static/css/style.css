@@ -1,0 +1,681 @@
+/* =========================
+   Base / Theme
+========================= */
+:root {
+  --bg0: #0a0f0d;
+  --bg1: #0d1411;
+  --panel: rgba(18, 24, 21, 0.62);
+  --panel2: rgba(14, 20, 18, 0.72);
+  --stroke: rgba(255, 255, 255, 0.10);
+  --stroke2: rgba(255, 255, 255, 0.16);
+  --text: rgba(255, 255, 255, 0.88);
+  --muted: rgba(255, 255, 255, 0.62);
+
+  /* Green accent (not too bright) */
+  --accent: #3a7f5d;
+  --accent2: #2f6b4d;
+  --accentGlow: rgba(58, 127, 93, 0.30);
+
+  --danger: #d05a5a;
+  --warn: #d9b35a;
+
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  --shadow: 0 20px 60px rgba(0,0,0,0.55);
+  --shadow2: 0 12px 30px rgba(0,0,0,0.45);
+
+  --blur: blur(14px);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(900px 600px at 20% 10%, rgba(58,127,93,0.22), transparent 55%),
+    radial-gradient(700px 500px at 70% 30%, rgba(217,179,90,0.10), transparent 60%),
+    radial-gradient(900px 700px at 60% 90%, rgba(58,127,93,0.10), transparent 55%),
+    linear-gradient(180deg, var(--bg0), var(--bg1));
+}
+
+/* Common */
+a { color: inherit; text-decoration: none; }
+pre { margin: 0; }
+.muted { color: var(--muted); }
+hr {
+  border: 0;
+  height: 1px;
+  background: rgba(255,255,255,0.10);
+  margin: 14px 0;
+}
+
+/* =========================
+   Layout Container
+========================= */
+.bdy {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 26px 14px;
+}
+
+.content {
+  width: min(860px, 92vw);
+  border-radius: var(--radius-lg);
+  background: var(--panel);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  border: 1px solid var(--stroke);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* =========================
+   Top Nav
+========================= */
+.nav {
+  display: grid;
+  grid-template-columns: 80px 1fr 300px;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(58,127,93,0.14);
+  border: 1px solid rgba(58,127,93,0.30);
+  box-shadow: 0 0 0 6px rgba(58,127,93,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  color: rgba(255,255,255,0.92);
+}
+.logo::before { content: "ㄸ"; }
+
+.title {
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  font-size: 26px; /* ✅ 또간집 크게 */
+  line-height: 1;
+  justify-self: start;
+  opacity: 0.95;
+}
+
+.auth {
+  justify-self: end;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 260px;
+}
+
+/* ✅ “~~님 환영합니다” 중앙정렬 */
+.welcome {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.auth-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.authBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.88);
+  font-weight: 700;
+  font-size: 13px;
+  transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+.authBox:hover {
+  transform: translateY(-1px);
+  border-color: rgba(58,127,93,0.45);
+  background: rgba(58,127,93,0.10);
+}
+
+/* =========================
+   Tabs / Bars
+========================= */
+.contentsBar {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.10);
+}
+
+.tab-btn {
+  position: relative;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.72);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, color 120ms ease;
+  user-select: none;
+}
+.tab-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.05);
+}
+
+.active-tab {
+  color: rgba(255,255,255,0.92);
+  border-color: rgba(58,127,93,0.55);
+  background: linear-gradient(180deg, rgba(58,127,93,0.22), rgba(58,127,93,0.08));
+  box-shadow: 0 0 0 6px rgba(58,127,93,0.06);
+}
+
+/* =========================
+   Content Area
+========================= */
+#contentArea {
+  padding: 18px 16px 22px;
+}
+
+/* Header row above list */
+.list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.list-header h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  opacity: 0.95;
+}
+
+/* =========================
+   Buttons
+========================= */
+button {
+  font-family: inherit;
+}
+
+.recruit-btn,
+.page-btn,
+.login-btn,
+.form-actions button,
+.card-actions button {
+  appearance: none;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.86);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.recruit-btn:hover,
+.page-btn:hover,
+.login-btn:hover,
+.form-actions button:hover,
+.card-actions button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(58,127,93,0.55);
+  background: rgba(58,127,93,0.12);
+  box-shadow: 0 0 0 6px rgba(58,127,93,0.06);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Special */
+.btn-complete {
+  border-color: rgba(217,179,90,0.35);
+}
+.btn-complete:hover {
+  border-color: rgba(217,179,90,0.65);
+  background: rgba(217,179,90,0.12);
+  box-shadow: 0 0 0 6px rgba(217,179,90,0.07);
+}
+
+/* =========================
+   Cards
+========================= */
+.card-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  padding: 14px 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  box-shadow: var(--shadow2);
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease, opacity 140ms ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.05);
+}
+
+.ctitle {
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  font-size: 15px;
+  margin-bottom: 8px;
+  color: rgba(255,255,255,0.92);
+}
+
+.meta {
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.68);
+  line-height: 1.55;
+}
+
+.authorSpotsTime {
+  display: grid;
+  gap: 4px;
+}
+
+.card-actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* ✅ Open / Closed 구분 강하게 (모집 카드에만 적용) */
+.recruit-card.open {
+  border-color: rgba(58,127,93,0.35);
+  box-shadow:
+    0 18px 50px rgba(0,0,0,0.50),
+    0 0 0 1px rgba(58,127,93,0.14) inset;
+}
+.recruit-card.open::before {
+  content: "모집중";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  background: rgba(58,127,93,0.16);
+  border: 1px solid rgba(58,127,93,0.35);
+  color: rgba(255,255,255,0.88);
+}
+
+.recruit-card.closed {
+  opacity: 0.72;
+  border-color: rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.02);
+  filter: saturate(0.75);
+}
+.recruit-card.closed::before {
+  content: "마감";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  background: rgba(208,90,90,0.12);
+  border: 1px solid rgba(208,90,90,0.35);
+  color: rgba(255,255,255,0.86);
+}
+
+
+/* Countdown 강조 */
+.countdown {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.18);
+  color: rgba(255,255,255,0.86);
+  font-weight: 800;
+  font-size: 11.5px;
+}
+
+/* =========================
+   Pagination
+========================= */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+.page-info {
+  color: rgba(255,255,255,0.65);
+  font-weight: 800;
+  font-size: 12.5px;
+}
+
+/* =========================
+   Forms
+========================= */
+form { width: 100%; }
+.form-row {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.form-row label {
+  font-size: 12px;
+  color: rgba(255,255,255,0.72);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+input[type="text"],
+input[type="password"],
+input[type="number"],
+textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(0,0,0,0.16);
+  color: rgba(255,255,255,0.90);
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+textarea { resize: vertical; }
+
+input:focus,
+textarea:focus {
+  border-color: rgba(58,127,93,0.60);
+  box-shadow: 0 0 0 6px rgba(58,127,93,0.10);
+  background: rgba(0,0,0,0.22);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* Chips area */
+#selectedFriends p { margin: 0; }
+#selectedFriends span button {
+  border: 0;
+  background: transparent;
+  color: rgba(255,255,255,0.75);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* =========================
+   Modal (Recruit / Detail)
+========================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 999;
+}
+
+.hidden { display: none !important; }
+
+.modal-content {
+  width: min(660px, 92vw);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(18, 24, 21, 0.78);
+  box-shadow: var(--shadow);
+  padding: 18px 16px;
+  max-height: 80vh;
+  overflow: auto;
+  margin: 0 auto;
+}
+
+.modal-content h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+}
+
+.apps-list {
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(255,255,255,0.82);
+}
+.apps-list li {
+  padding: 3px 0;
+  font-size: 13px;
+}
+
+/* =========================
+   Login / Signup pages (existing classes)
+========================= */
+.login-box {
+  margin: 16px auto 0;
+  width: min(520px, 92%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.03);
+  box-shadow: var(--shadow2);
+}
+
+.localLogin {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.loginSummit {
+  display: grid;
+  gap: 10px;
+  flex: 1;
+}
+
+.input-group {
+  display: grid;
+  gap: 8px;
+}
+
+.login-btn {
+  min-width: 110px;
+  height: 42px;
+  border-radius: 14px;
+  background: rgba(58,127,93,0.14);
+  border: 1px solid rgba(58,127,93,0.35);
+}
+.login-btn:hover {
+  background: rgba(58,127,93,0.18);
+  border-color: rgba(58,127,93,0.60);
+  box-shadow: 0 0 0 6px rgba(58,127,93,0.08);
+}
+
+/* Kakao circle (your .k) */
+.k {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+}
+.k:hover {
+  border-color: rgba(255,255,255,0.20);
+  background: rgba(255,255,255,0.08);
+}
+
+/* Signup button (your .btn1) */
+.btn1 {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  font-weight: 900;
+}
+.btn1:hover {
+  border-color: rgba(58,127,93,0.55);
+  background: rgba(58,127,93,0.10);
+}
+
+/* =========================
+   Responsive
+========================= */
+@media (max-width: 820px) {
+  .nav {
+    grid-template-columns: 70px 1fr;
+    grid-template-rows: auto auto;
+  }
+  .auth {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+  .title { font-size: 24px; }
+}
+
+@media (max-width: 520px) {
+  .content { width: 96vw; }
+  .contentsBar { flex-wrap: wrap; }
+  .auth-buttons { flex-wrap: wrap; }
+  .localLogin { flex-direction: column; align-items: stretch; }
+  .login-btn { width: 100%; }
+}
+/* =========================
+   Spacing Upgrade
+========================= */
+
+/* 카드 내부 여백 증가 */
+.card {
+  padding: 20px 20px;
+}
+
+/* 카드 제목 아래 여백 */
+.ctitle {
+  margin-bottom: 14px;
+}
+
+/* meta 블록 간격 */
+.authorSpotsTime {
+  gap: 8px;
+}
+
+/* meta 줄 간격 */
+.meta {
+  margin-bottom: 6px;
+}
+
+/* 카드 버튼 영역 */
+.card-actions {
+  margin-top: 16px;
+  gap: 12px;
+}
+
+/* 리스트 헤더 */
+.list-header {
+  margin-bottom: 22px;
+}
+
+/* 탭 버튼 간격 */
+.contentsBar {
+  gap: 14px;
+  padding: 16px 18px;
+}
+
+/* 버튼 패딩 확대 */
+button,
+.recruit-btn,
+.page-btn,
+.login-btn,
+.form-actions button {
+  padding: 12px 18px;
+  font-size: 14px;
+}
+
+/* 폼 입력 간격 */
+.form-row {
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+/* 입력창 padding 증가 */
+input[type="text"],
+input[type="password"],
+input[type="number"],
+textarea {
+  padding: 14px 14px;
+  font-size: 14px;
+}
+
+/* 상세 모달 텍스트 블록 간격 */
+.modal-content .meta {
+  margin-bottom: 10px;
+}
+
+/* 신청자 / 팀원 리스트 여백 */
+#detailApps {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+/* pagination 위 여백 */
+.pagination {
+  margin-top: 28px;
+}

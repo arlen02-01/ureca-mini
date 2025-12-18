@@ -11,10 +11,18 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+	@ExceptionHandler(NoResourceFoundException.class)
+	public ResponseDto<?> handleNoResourceFound(NoResourceFoundException e) {
+	    // ❗ 에러 아님 → debug or warn
+	    log.debug("Static resource not found: {}", e.getResourcePath());
+	    return ResponseDto.fail(new CommonException(ErrorCode.NOT_FOUND_END_POINT));
+	}
 
     // Convertor 에서 바인딩 실패시 발생하는 예외
     @ExceptionHandler(value = {HttpMessageNotReadableException.class})

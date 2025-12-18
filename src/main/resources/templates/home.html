@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>또간집</title>
+
+  <!-- ✅ CSRF (필요하면 유지 / 필요없으면 삭제 가능) -->
+  <meta name="_csrf" th:if="${_csrf != null}" th:content="${_csrf.token}">
+  <meta name="_csrf_header" th:if="${_csrf != null}" th:content="${_csrf.headerName}">
+
+  <!-- ✅ 로그인 정보 전역 변수 (중복 선언 금지) -->
+  <script>
+    var CURRENT_USER_ID = null;
+    var CURRENT_USER_NAME = null;
+  </script>
+
+  <script th:inline="javascript" sec:authorize="isAuthenticated()">
+  /*<![CDATA[*/
+    CURRENT_USER_ID = /*[[${#authentication.principal.id}]]*/ null;
+    CURRENT_USER_NAME = /*[[${#authentication.name}]]*/ null;
+  /*]]>*/
+  </script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+
+  <!-- JS -->
+  <script th:src="@{/js/script.js}" defer></script>
+</head>
+
+<body class="bdy">
+
+<div class="content">
+
+	<!-- NAV -->
+	<nav class="nav">
+	  <div class="logo">ㄸ</div>
+	
+	  <a class="title" href="/">또간집</a>
+	
+	  <div class="auth">
+	    <span sec:authorize="isAuthenticated()">
+	      <div class="welcome">
+	        <span sec:authentication="name"></span>님 환영합니다!
+	      </div>
+	      <div class="auth-buttons">
+	        <a href="/mypage" class="authBox">마이페이지</a>
+	        <a href="/auth/logout" class="authBox">로그아웃</a>
+	      </div>
+	    </span>
+	
+	    <span sec:authorize="isAnonymous()">
+	      <div class="auth-buttons">
+	        <a href="/auth/login" class="authBox">로그인</a>
+	        <a href="/auth/signup" class="authBox">회원가입</a>
+	      </div>
+	    </span>
+	  </div>
+	</nav>
+
+
+  <!-- 상단 탭 -->
+  <div class="contentsBar">
+    <div id="teamBox" class="tab-btn">팀</div>
+    <div id="boardBox" class="tab-btn">게시판</div>
+  </div>
+
+  <!-- 컨텐츠 렌더 영역 -->
+  <div id="contentArea"></div>
+
+  <!-- ✅ 상세 모달 -->
+  <div id="detailModal" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="detailTitle">상세</h3>
+
+      <div class="meta">작성자: <span id="detailCreator"></span></div>
+      <div class="meta">인원: <span id="detailSpots"></span></div>
+      <div class="meta">상태: <span id="detailStatus"></span></div>
+
+      <div class="meta">
+        마감까지:
+        <span id="detailCountdown" class="countdown" data-end-time=""></span>
+      </div>
+
+      <hr>
+
+      <div class="meta"><b>내용</b></div>
+      <pre id="detailDesc" style="white-space:pre-wrap;"></pre>
+
+      <!-- ✅ 신청자 → 팀원 -->
+      <div class="meta"><b>팀원</b></div>
+      <div id="detailApps"></div>
+
+      <div class="form-actions">
+        <button type="button" id="detailApplyBtn">신청하기</button>
+        <button type="button" id="detailCompleteBtn" data-id="">마감</button>
+        <button type="button" id="detailCloseBtn">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ 모집 모달 -->
+  <div id="recruitModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>밥친구 모집하기</h3>
+
+      <form id="recruitForm">
+        <div class="form-row">
+          <label>제목</label>
+          <input type="text" name="title" required>
+        </div>
+
+        <div class="form-row">
+          <label>내용</label>
+          <textarea name="description" rows="4" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <label>모집 인원</label>
+          <input type="number" name="totalSpots" min="1" required>
+        </div>
+
+        <div class="form-row">
+          <label>친구</label>
+
+          <div style="display:flex; gap:8px; align-items:center;">
+            <button type="button" id="openFriendPickerBtn">친구 추가</button>
+            <span class="muted" style="font-size:12px;">선택한 친구에게만 보이게(또는 초대)할 수 있어요</span>
+          </div>
+
+          <div id="selectedFriends" style="margin-top:8px;"></div>
+
+          <div id="friendPicker" class="hidden" style="margin-top:10px;">
+            <div id="friendPickerList"><p>불러오는 중...</p></div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label>마감까지 남은 시간</label>
+          <div style="display:flex; gap:8px;">
+            <input type="number" name="endHours" min="0" value="0" style="width: 80px;"> 시간
+            <input type="number" name="endMinutes" min="0" max="59" value="30" style="width: 80px;"> 분
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit">작성 완료</button>
+          <button type="button" id="closeRecruitBtn">취소</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
